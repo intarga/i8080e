@@ -1,0 +1,9 @@
+# object files
+*.o
+
+# copyrighted stuff
+rom/*
+docs/*
+
+# binary
+emulator
