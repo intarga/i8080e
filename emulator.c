@@ -22,11 +22,11 @@ unsigned char *read_rom(char *filename, int *fsize) {
 }
 
 int main() {
-    int *fsize;
-    unsigned char *buffer = read_rom("rom/invaders.h", fsize);
+    int fsize = 0;
+    unsigned char *buffer = read_rom("rom/invaders.h", &fsize);
 
     int pc = 0;
-    while (pc < *fsize) {
+    while (pc < fsize) {
         pc += disassemble_op(buffer, pc);
     }
 }
