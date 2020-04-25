@@ -1,11 +1,21 @@
-emulator: emulator.o disassembler.o
-	gcc emulator.o disassembler.o -o emulator
+CC = gcc $(CFLAGS)
+CFLAGS = -Wall -Werror -Wextra
+
+all: 8080-emulator
+
+debug: CFLAGS += -O0 -g
+debug: all
+release: CFLAGS += -O3
+release: all
+
+8080-emulator: emulator.o disassembler.o
+	$(CC) $^ -o $@
 
 emulator.o: emulator.c disassembler.h
-	gcc -c emulator.c
+	$(CC) -c $<
 
 disassembler.o: disassembler.c
-	gcc -c disassembler.c
+	$(CC) -c $<
 
 clean:
-	rm *.o emulator
+	rm *.o 8080-emulator

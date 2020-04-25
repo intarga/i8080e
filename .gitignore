@@ -6,4 +6,4 @@ rom/*
 docs/*
 
 # binary
-emulator
+8080-emulator
