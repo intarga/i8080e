@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "disassembler.h"
 
 unsigned char *read_rom(char *filename, int *fsize) {
     FILE *f = fopen(filename, "rb");
@@ -22,11 +21,4 @@ unsigned char *read_rom(char *filename, int *fsize) {
 }
 
 int main() {
-    int fsize = 0;
-    unsigned char *buffer = read_rom("rom/invaders.h", &fsize);
-
-    int pc = 0;
-    while (pc < fsize) {
-        pc += disassemble_op(buffer, pc);
-    }
 }

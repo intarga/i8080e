@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 int disassemble_op(unsigned char *codebuffer, int pc) {
     unsigned char* code = &codebuffer[pc];
@@ -284,3 +285,33 @@ int disassemble_op(unsigned char *codebuffer, int pc) {
 
     return opbytes;
 }
+
+unsigned char *read_rom(char *filename, int *fsize) {
+    FILE *f = fopen(filename, "rb");
+    if (!f) {
+        printf("Could not open %s\n", filename);
+        exit(1);
+    }
+
+    fseek(f, 0, SEEK_END);
+    *fsize = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    unsigned char *buffer = malloc(*fsize);
+
+    fread(buffer, 1, *fsize, f);
+    fclose(f);
+
+    return buffer;
+}
+
+int main() {
+    int fsize = 0;
+    unsigned char *buffer = read_rom("rom/invaders", &fsize);
+
+    int pc = 0;
+    while (pc < fsize) {
+        pc += disassemble_op(buffer, pc);
+    }
+}
+
