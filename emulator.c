@@ -23,7 +23,7 @@ typedef struct condition_codes {
 } condition_codes;
 
 typedef struct system_state {
-    uint8_t reg[7]; // registers
+    uint8_t regs[7]; // registers
     uint16_t sp; // stack pointer
     uint16_t pc; //program counter
     uint8_t *memory;
@@ -35,10 +35,15 @@ void LXI(system_state *state, uint8_t reg) {
     if (reg == SP) {
         state->sp = (op_code[2] << 8) | op_code[1];
     } else {
-        state->reg[reg] = op_code[2];
-        state->reg[reg + 1] = op_code[1];
+        state->regs[reg] = op_code[2];
+        state->regs[reg + 1] = op_code[1];
     }
     state->pc += 2
+}
+
+void STAX(system_state *state, uint8_t reg) {
+    uint16_t address = (state->regs[reg] << 8) | state->regs[reg+1];
+    &state->memory[address] = state->regs[A];
 }
 
 int emulate_op(system_state *state) {
@@ -47,7 +52,7 @@ int emulate_op(system_state *state) {
     switch (*op_code) {
         case 0x00: break; // NOP
         case 0x01: LXI(state, B); break;
-        case 0x02: break;
+        case 0x02: STAX(state, B); break;
         case 0x03: break;
         case 0x04: break;
         case 0x05: break;
