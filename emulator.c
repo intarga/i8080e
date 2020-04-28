@@ -4,14 +4,15 @@
 #include <stdbool.h>
 
 // -- Register names --
-#define A 0
+#define A 0 // accumulator
 #define B 1
 #define C 2
 #define D 3
 #define E 4
 #define H 6
 #define L 7
-#define SP 8
+#define SP 8 // stack pointer
+#define M 9 // memory reference
 
 // -- System state --
 
@@ -21,7 +22,7 @@ typedef struct condition_codes {
     uint8_t p;
     uint8_t cy;
     uint8_t ac;
-    uint8_t pad;
+    //uint8_t pad;
 } condition_codes;
 
 typedef struct system_state {
@@ -30,14 +31,43 @@ typedef struct system_state {
     uint16_t pc; //program counter
     uint8_t *memory;
     condition_codes cc;
-    uint8_t int_enable;
+    //uint8_t int_enable;
 } system_state;
+
+// -- Helper functions --
+
+uint8_t check_parity(uint8_t res, int bits) {
+    int p = 0;
+    for (int i = 0; i < bits; i++) {
+        if ((res >>= 1) & 0x1)
+            p++;
+    }
+    return ((p & 0x1) == 0)
+}
+
+// -- Single register instructions --
+
+void INR(system_state *state, uint8_t reg) {
+    uint8_t res;
+
+    if (reg == M) {
+        uint16_t address = (state->regs[H] << 8) | state->regs[L];
+        res = ++state->memory[address];
+    } else {
+        res = ++state->regs[reg];
+    }
+
+    state->cc.z = (res == 0x00);
+    state->cc.s = ((res & 0x80) == 0x80);
+    state->cc.p = check_parity(res, 8);
+    state->cc.ac = ((res & 0x0f) == 0x00);
+}
 
 // -- Data transfer instructions --
 
 void STAX(system_state *state, uint8_t reg) {
     uint16_t address = (state->regs[reg] << 8) | state->regs[reg+1];
-    &state->memory[address] = state->regs[A];
+    state->memory[address] = state->regs[A];
 }
 
 // -- Register pair instructions --
@@ -64,14 +94,14 @@ void LXI(system_state *state, uint8_t reg) {
 }
 
 int emulate_op(system_state *state) {
-    unsigned char* op_code = &state->memory[state->pc];
+    unsigned char op_code = state->memory[state->pc];
 
-    switch (*op_code) {
+    switch (op_code) {
         case 0x00: break; // NOP
         case 0x01: LXI(state, B); break;
         case 0x02: STAX(state, B); break;
         case 0x03: INX(state, B); break;
-        case 0x04: break;
+        case 0x04: INR(state, B); break;
         case 0x05: break;
         case 0x06: break;
         case 0x07: break;
