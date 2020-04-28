@@ -46,6 +46,15 @@ void STAX(system_state *state, uint8_t reg) {
     &state->memory[address] = state->regs[A];
 }
 
+void INX(system_state *state, uint8_t reg) {
+    if (reg == SP) {
+        state->regs[reg]++;
+    } else {
+        if (state->regs[reg + 1]++ == 0xff)
+            state->regs[reg]++;
+    }
+}
+
 int emulate_op(system_state *state) {
     unsigned char* op_code = &state->memory[state->pc];
 
@@ -53,7 +62,7 @@ int emulate_op(system_state *state) {
         case 0x00: break; // NOP
         case 0x01: LXI(state, B); break;
         case 0x02: STAX(state, B); break;
-        case 0x03: break;
+        case 0x03: INX(state, B); break;
         case 0x04: break;
         case 0x05: break;
         case 0x06: break;
