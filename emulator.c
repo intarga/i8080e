@@ -11,6 +11,7 @@
 #define E 4
 #define H 6
 #define L 7
+#define SP 8
 
 typedef struct condition_codes {
     uint8_t z;
@@ -30,12 +31,22 @@ typedef struct system_state {
     uint8_t int_enable;
 } system_state;
 
+void LXI(system_state *state, uint8_t reg) {
+    if (reg == SP) {
+        state->sp = (op_code[2] << 8) | op_code[1];
+    } else {
+        state->reg[reg] = op_code[2];
+        state->reg[reg + 1] = op_code[1];
+    }
+    state->pc += 2
+}
+
 int emulate_op(system_state *state) {
-    unsigned char* op_code = &state->memory[pc];
+    unsigned char* op_code = &state->memory[state->pc];
 
     switch (*op_code) {
-        case 0x00: break;
-        case 0x01: break;
+        case 0x00: break; // NOP
+        case 0x01: LXI(state, B); break;
         case 0x02: break;
         case 0x03: break;
         case 0x04: break;
