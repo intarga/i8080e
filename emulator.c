@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-// Register names
+// -- Register names --
 #define A 0
 #define B 1
 #define C 2
@@ -12,6 +12,8 @@
 #define H 6
 #define L 7
 #define SP 8
+
+// -- System state --
 
 typedef struct condition_codes {
     uint8_t z;
@@ -31,20 +33,14 @@ typedef struct system_state {
     uint8_t int_enable;
 } system_state;
 
-void LXI(system_state *state, uint8_t reg) {
-    if (reg == SP) {
-        state->sp = (op_code[2] << 8) | op_code[1];
-    } else {
-        state->regs[reg] = op_code[2];
-        state->regs[reg + 1] = op_code[1];
-    }
-    state->pc += 2
-}
+// -- Data transfer instructions --
 
 void STAX(system_state *state, uint8_t reg) {
     uint16_t address = (state->regs[reg] << 8) | state->regs[reg+1];
     &state->memory[address] = state->regs[A];
 }
+
+// -- Register pair instructions --
 
 void INX(system_state *state, uint8_t reg) {
     if (reg == SP) {
@@ -53,6 +49,18 @@ void INX(system_state *state, uint8_t reg) {
         if (state->regs[reg + 1]++ == 0xff)
             state->regs[reg]++;
     }
+}
+
+// -- Immediate instructions --
+
+void LXI(system_state *state, uint8_t reg) {
+    if (reg == SP) {
+        state->sp = (op_code[2] << 8) | op_code[1];
+    } else {
+        state->regs[reg] = op_code[2];
+        state->regs[reg + 1] = op_code[1];
+    }
+    state->pc += 2
 }
 
 int emulate_op(system_state *state) {
