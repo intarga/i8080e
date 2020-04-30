@@ -192,6 +192,14 @@ void MVI(system_state *state, uint8_t reg) {
     state->pc++
 }
 
+// -- Direct addressing instructions --
+
+void SHLD(system_state *state) {
+    uint16_t address = (state->memory[state->pc + 2] << 8) | state->memory[state->pc + 1];
+    state->memory[address] = state->regs[L];
+    state->memory[address + 1] = state->regs[H];
+}
+
 // -- The emulation nation --
 
 int emulate_op(system_state *state) {
@@ -234,9 +242,9 @@ int emulate_op(system_state *state) {
         case 0x1e: MVI(state, E);   break;
         case 0x1f: RAR(state);      break;
 
-        case 0x20: break;
-        case 0x21: break;
-        case 0x22: break;
+        case 0x20: exit(1); // undocumented instruction!! break;
+        case 0x21: LXI(state, H);   break;
+        case 0x22: SHLd(state);     break;
         case 0x23: break;
         case 0x24: break;
         case 0x25: break;
