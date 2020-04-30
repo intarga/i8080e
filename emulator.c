@@ -123,10 +123,19 @@ void DAD(system_state *state, uint8_t reg) {
 
 void INX(system_state *state, uint8_t reg) {
     if (reg == SP) {
-        state->regs[reg]++;
+        state->sp++;
     } else {
         if (state->regs[reg + 1]++ == 0xff)
             state->regs[reg]++;
+    }
+}
+
+void DCX(system_state *state, uint8_t reg) {
+    if (reg == SP) {
+        state->sp--;
+    } else {
+        if (state->regs[reg + 1]-- == 0x00)
+            state->regs[reg]--;
     }
 }
 
@@ -176,7 +185,7 @@ int emulate_op(system_state *state) {
         case 0x08: exit(1) //undocumented instruction!! break;
         case 0x09: DAD(state, B);   break;
         case 0x0a: LDAX(state, B);  break;
-        case 0x0b: break;
+        case 0x0b: DCX(state, B);   break;
         case 0x0c: break;
         case 0x0d: break;
         case 0x0e: break;
