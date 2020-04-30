@@ -123,6 +123,14 @@ void RAL(system_state *state) {
     state->regs[A] += oldcy;
 }
 
+void RAR(system_state *state) {
+    uint8_t oldcy = state->cc->cy;
+    state->cc.cy = (state->regs[A] & 0x01) != 0;
+
+    state->regs[A] >>= 1;
+    state->regs[A] += (oldcy * 0x80);
+}
+
 // -- Register pair instructions --
 
 void DAD(system_state *state, uint8_t reg) {
@@ -184,7 +192,7 @@ void MVI(system_state *state, uint8_t reg) {
     state->pc++
 }
 
-//void (system_state *state, uint8_t reg) {
+// -- The emulation nation --
 
 int emulate_op(system_state *state) {
     unsigned char op_code = state->memory[state->pc];
@@ -217,14 +225,14 @@ int emulate_op(system_state *state) {
         case 0x16: MVI(state, D);   break;
         case 0x17: RAL(state);      break;
 
-        case 0x18: break;
-        case 0x19: break;
-        case 0x1a: break;
-        case 0x1b: break;
-        case 0x1c: break;
-        case 0x1d: break;
-        case 0x1e: break;
-        case 0x1f: break;
+        case 0x18: exit(1); // undocumented instruction!! break;
+        case 0x19: DAD(state, D);   break;
+        case 0x1a: LDAX(state, D);  break;
+        case 0x1b: DCX(state, D);   break;
+        case 0x1c: INR(state, E);   break;
+        case 0x1d: DCR(state, E);   break;
+        case 0x1e: MVI(state, E);   break;
+        case 0x1f: RAR(state);      break;
 
         case 0x20: break;
         case 0x21: break;
