@@ -85,6 +85,18 @@ void DCR(system_state *state, uint8_t reg) {
     state->cc.ac = ((res & 0x0f) == 0x0f);
 }
 
+void DAA(system_state *state) {
+    if (state->cc.ac || (state->regs[A] & 0x0f) > 9) {
+        state->cc.ac = 1;
+        state->regs[A] += 6;
+    }
+
+    if (state->cc.cy || (state->regs[A] >> 4) > 9) {
+        state->cc.cy = 1;
+        state->regs[A] = ((state->regs[A] & 0xf0) + (6 << 4)) + (state->regs[A] &0x0f);
+    }
+}
+
 // -- Data transfer instructions --
 
 void STAX(system_state *state, uint8_t reg) {
@@ -247,11 +259,11 @@ int emulate_op(system_state *state) {
         case 0x20: exit(1); // undocumented instruction!! break;
         case 0x21: LXI(state, H);   break;
         case 0x22: SHLD(state);     break;
-        case 0x23: break;
-        case 0x24: break;
-        case 0x25: break;
-        case 0x26: break;
-        case 0x27: break;
+        case 0x23: INX(state, H);   break;
+        case 0x24: INR(state, H);   break;
+        case 0x25: DCR(state, H);   break;
+        case 0x26: MVI(state, H);   break;
+        case 0x27: DAA(state);      break;
 
         case 0x28: break;
         case 0x29: break;
