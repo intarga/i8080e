@@ -115,6 +115,14 @@ void RRC(system_state *state) {
         state->regs[A] += 0x80;
 }
 
+void RAL(system_state *state) {
+    uint8_t oldcy = state->cc.cy;
+    state->cc.cy = (state->regs[A] & 0x80) != 0;
+
+    state->regs[A] <<= 1;
+    state->regs[A] += oldcy;
+}
+
 // -- Register pair instructions --
 
 void DAD(system_state *state, uint8_t reg) {
@@ -190,7 +198,8 @@ int emulate_op(system_state *state) {
         case 0x05: DCR(state, B);   break;
         case 0x06: MVI(state, B);   break;
         case 0x07: RLC(state);      break;
-        case 0x08: exit(1) //undocumented instruction!! break;
+
+        case 0x08: exit(1); // undocumented instruction!! break;
         case 0x09: DAD(state, B);   break;
         case 0x0a: LDAX(state, B);  break;
         case 0x0b: DCX(state, B);   break;
@@ -199,14 +208,15 @@ int emulate_op(system_state *state) {
         case 0x0e: MVI(state, C);   break;
         case 0x0f: RRC(state);      break;
 
-        case 0x10: break;
-        case 0x11: break;
-        case 0x12: break;
-        case 0x13: break;
-        case 0x14: break;
-        case 0x15: break;
-        case 0x16: break;
-        case 0x17: break;
+        case 0x10: exit(1); // undocumented instruction!! break;
+        case 0x11: LXI(state, D);   break;
+        case 0x12: STAX(state, D);  break;
+        case 0x13: INX(state, D);   break;
+        case 0x14: INR(state, D);   break;
+        case 0x15: DCR(state, D);   break;
+        case 0x16: MVI(state, D);   break;
+        case 0x17: RAL(state);      break;
+
         case 0x18: break;
         case 0x19: break;
         case 0x1a: break;
@@ -224,6 +234,7 @@ int emulate_op(system_state *state) {
         case 0x25: break;
         case 0x26: break;
         case 0x27: break;
+
         case 0x28: break;
         case 0x29: break;
         case 0x2a: break;
@@ -241,6 +252,7 @@ int emulate_op(system_state *state) {
         case 0x35: break;
         case 0x36: break;
         case 0x37: break;
+
         case 0x38: break;
         case 0x39: break;
         case 0x3a: break;
@@ -258,6 +270,7 @@ int emulate_op(system_state *state) {
         case 0x45: break;
         case 0x46: break;
         case 0x47: break;
+
         case 0x48: break;
         case 0x49: break;
         case 0x4a: break;
@@ -275,6 +288,7 @@ int emulate_op(system_state *state) {
         case 0x55: break;
         case 0x56: break;
         case 0x57: break;
+
         case 0x58: break;
         case 0x59: break;
         case 0x5a: break;
@@ -292,6 +306,7 @@ int emulate_op(system_state *state) {
         case 0x65: break;
         case 0x66: break;
         case 0x67: break;
+
         case 0x68: break;
         case 0x69: break;
         case 0x6a: break;
@@ -309,6 +324,7 @@ int emulate_op(system_state *state) {
         case 0x75: break;
         case 0x76: break;
         case 0x77: break;
+
         case 0x78: break;
         case 0x79: break;
         case 0x7a: break;
@@ -326,6 +342,7 @@ int emulate_op(system_state *state) {
         case 0x85: break;
         case 0x86: break;
         case 0x87: break;
+
         case 0x88: break;
         case 0x89: break;
         case 0x8a: break;
@@ -343,6 +360,7 @@ int emulate_op(system_state *state) {
         case 0x95: break;
         case 0x96: break;
         case 0x97: break;
+
         case 0x98: break;
         case 0x99: break;
         case 0x9a: break;
@@ -360,6 +378,7 @@ int emulate_op(system_state *state) {
         case 0xa5: break;
         case 0xa6: break;
         case 0xa7: break;
+
         case 0xa8: break;
         case 0xa9: break;
         case 0xaa: break;
@@ -377,6 +396,7 @@ int emulate_op(system_state *state) {
         case 0xb5: break;
         case 0xb6: break;
         case 0xb7: break;
+
         case 0xb8: break;
         case 0xb9: break;
         case 0xba: break;
@@ -394,6 +414,7 @@ int emulate_op(system_state *state) {
         case 0xc5: break;
         case 0xc6: break;
         case 0xc7: break;
+
         case 0xc8: break;
         case 0xc9: break;
         case 0xca: break;
@@ -411,6 +432,7 @@ int emulate_op(system_state *state) {
         case 0xd5: break;
         case 0xd6: break;
         case 0xd7: break;
+
         case 0xd8: break;
         case 0xd9: break;
         case 0xda: break;
@@ -428,6 +450,7 @@ int emulate_op(system_state *state) {
         case 0xe5: break;
         case 0xe6: break;
         case 0xe7: break;
+
         case 0xe8: break;
         case 0xe9: break;
         case 0xea: break;
@@ -445,6 +468,7 @@ int emulate_op(system_state *state) {
         case 0xf5: break;
         case 0xf6: break;
         case 0xf7: break;
+
         case 0xf8: break;
         case 0xf9: break;
         case 0xfa: break;
