@@ -51,13 +51,17 @@ uint8_t set_zsp(system_state *state, uint8_t res) {
     state->cc.p = check_parity(res, 8);
 }
 
+uint16_t get_m_address(system_state *state) {
+    return (state->regs[H] << 8) | state->regs[L];
+}
+
 // -- Single register instructions --
 
 void INR(system_state *state, uint8_t reg) {
     uint8_t res;
 
     if (reg == M) {
-        uint16_t address = (state->regs[H] << 8) | state->regs[L];
+        uint16_t address = get_m_address(state);
         res = ++state->memory[address];
     } else {
         res = ++state->regs[reg];
@@ -71,7 +75,7 @@ void DCR(system_state *state, uint8_t reg) {
     uint8_t res;
 
     if (reg == M) {
-        uint16_t address = (state->regs[H] << 8) | state->regs[L];
+        uint16_t address = get_m_address(state);
         res = --state->memory[address];
     } else {
         res = --state->regs[reg];
@@ -102,14 +106,33 @@ void INX(system_state *state, uint8_t reg) {
 // -- Immediate instructions --
 
 void LXI(system_state *state, uint8_t reg) {
+    unsigned char byte1 = state->memory[state->pc + 1];
+    unsigned char byte2 = state->memory[state->pc + 2];
+
     if (reg == SP) {
-        state->sp = (op_code[2] << 8) | op_code[1];
+        state->sp = (byte2 << 8) | byte1;
     } else {
-        state->regs[reg] = op_code[2];
-        state->regs[reg + 1] = op_code[1];
+        state->regs[reg] = byte2;
+        state->regs[reg + 1] = byte1;
     }
+
     state->pc += 2
 }
+
+void MVI(system_state *state, uint8_t reg) {
+    unsigned char byte = state->memory[state->pc + 1];
+
+    if (reg == M) {
+        uint16_t address = get_m_address(state);
+        state->memory[address] = byte;
+    } else {
+        state->regs[reg] = byte;
+    }
+
+    state->pc++
+}
+
+//void (system_state *state, uint8_t reg) {
 
 int emulate_op(system_state *state) {
     unsigned char op_code = state->memory[state->pc];
@@ -121,7 +144,7 @@ int emulate_op(system_state *state) {
         case 0x03: INX(state, B); break;
         case 0x04: INR(state, B); break;
         case 0x05: DCR(state, B); break;
-        case 0x06: break;
+        case 0x06: MVI(state, B); break;
         case 0x07: break;
         case 0x08: break;
         case 0x09: break;
