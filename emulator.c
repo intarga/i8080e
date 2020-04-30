@@ -45,6 +45,12 @@ uint8_t check_parity(uint8_t res, int bits) {
     return ((p & 0x1) == 0)
 }
 
+uint8_t set_zsp(system_state *state, uint8_t res) {
+    state->cc.z = (res == 0x00);
+    state->cc.s = ((res & 0x80) == 0x80);
+    state->cc.p = check_parity(res, 8);
+}
+
 // -- Single register instructions --
 
 void INR(system_state *state, uint8_t reg) {
@@ -57,10 +63,22 @@ void INR(system_state *state, uint8_t reg) {
         res = ++state->regs[reg];
     }
 
-    state->cc.z = (res == 0x00);
-    state->cc.s = ((res & 0x80) == 0x80);
-    state->cc.p = check_parity(res, 8);
+    set_zsp(state, res);
     state->cc.ac = ((res & 0x0f) == 0x00);
+}
+
+void DCR(system_state *state, uint8_t reg) {
+    uint8_t res;
+
+    if (reg == M) {
+        uint16_t address = (state->regs[H] << 8) | state->regs[L];
+        res = --state->memory[address];
+    } else {
+        res = --state->regs[reg];
+    }
+
+    set_zsp(state, res);
+    state->cc.ac = ((res & 0x0f) = 0x0f);
 }
 
 // -- Data transfer instructions --
@@ -102,7 +120,7 @@ int emulate_op(system_state *state) {
         case 0x02: STAX(state, B); break;
         case 0x03: INX(state, B); break;
         case 0x04: INR(state, B); break;
-        case 0x05: break;
+        case 0x05: DCR(state, B); break;
         case 0x06: break;
         case 0x07: break;
         case 0x08: break;
