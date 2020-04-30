@@ -9,10 +9,10 @@
 #define C 2
 #define D 3
 #define E 4
-#define H 6
-#define L 7
-#define SP 8 // stack pointer
-#define M 9 // memory reference
+#define H 5
+#define L 6
+#define SP 7 // stack pointer
+#define M 8 // memory reference
 
 // -- System state --
 
