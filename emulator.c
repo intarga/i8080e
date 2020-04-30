@@ -92,6 +92,16 @@ void STAX(system_state *state, uint8_t reg) {
     state->memory[address] = state->regs[A];
 }
 
+// -- Rotate accumulator instructions --
+
+void RLC(system_state *state) {
+    state->cc.cy = (state->regs[A] & 0x80) != 0;
+
+    state->regs[A] <<= 1;
+    if (state->cc.cy)
+        state->regs[A]++;
+}
+
 // -- Register pair instructions --
 
 void INX(system_state *state, uint8_t reg) {
@@ -139,13 +149,13 @@ int emulate_op(system_state *state) {
 
     switch (op_code) {
         case 0x00: break; // NOP
-        case 0x01: LXI(state, B); break;
-        case 0x02: STAX(state, B); break;
-        case 0x03: INX(state, B); break;
-        case 0x04: INR(state, B); break;
-        case 0x05: DCR(state, B); break;
-        case 0x06: MVI(state, B); break;
-        case 0x07: break;
+        case 0x01: LXI(state, B);   break;
+        case 0x02: STAX(state, B);  break;
+        case 0x03: INX(state, B);   break;
+        case 0x04: INR(state, B);   break;
+        case 0x05: DCR(state, B);   break;
+        case 0x06: MVI(state, B);   break;
+        case 0x07: RLC(state);      break;
         case 0x08: break;
         case 0x09: break;
         case 0x0a: break;
