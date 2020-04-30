@@ -42,10 +42,10 @@ uint8_t check_parity(uint8_t res, int bits) {
         if ((res >>= 1) & 0x1)
             p++;
     }
-    return ((p & 0x1) == 0)
+    return ((p & 0x1) == 0);
 }
 
-uint8_t set_zsp(system_state *state, uint8_t res) {
+void set_zsp(system_state *state, uint8_t res) {
     state->cc.z = (res == 0x00);
     state->cc.s = ((res & 0x80) == 0x80);
     state->cc.p = check_parity(res, 8);
@@ -82,7 +82,7 @@ void DCR(system_state *state, uint8_t reg) {
     }
 
     set_zsp(state, res);
-    state->cc.ac = ((res & 0x0f) = 0x0f);
+    state->cc.ac = ((res & 0x0f) == 0x0f);
 }
 
 // -- Data transfer instructions --
@@ -124,7 +124,7 @@ void RAL(system_state *state) {
 }
 
 void RAR(system_state *state) {
-    uint8_t oldcy = state->cc->cy;
+    uint8_t oldcy = state->cc.cy;
     state->cc.cy = (state->regs[A] & 0x01) != 0;
 
     state->regs[A] >>= 1;
@@ -141,8 +141,8 @@ void DAD(system_state *state, uint8_t reg) {
 
     state->cc.cy = ((sum & 0x00010000) != 0);
 
-    state->regs[reg] = ((sum >> 8) & 0x000000ff)
-    state->regs[reg + 1] = (sum & 0x000000ff)
+    state->regs[reg] = ((sum >> 8) & 0x000000ff);
+    state->regs[reg + 1] = (sum & 0x000000ff);
 }
 
 void INX(system_state *state, uint8_t reg) {
@@ -176,7 +176,7 @@ void LXI(system_state *state, uint8_t reg) {
         state->regs[reg + 1] = byte1;
     }
 
-    state->pc += 2
+    state->pc += 2;
 }
 
 void MVI(system_state *state, uint8_t reg) {
@@ -189,7 +189,7 @@ void MVI(system_state *state, uint8_t reg) {
         state->regs[reg] = byte;
     }
 
-    state->pc++
+    state->pc++;
 }
 
 // -- Direct addressing instructions --
@@ -198,6 +198,8 @@ void SHLD(system_state *state) {
     uint16_t address = (state->memory[state->pc + 2] << 8) | state->memory[state->pc + 1];
     state->memory[address] = state->regs[L];
     state->memory[address + 1] = state->regs[H];
+
+    state->pc += 2;
 }
 
 // -- The emulation nation --
@@ -244,7 +246,7 @@ int emulate_op(system_state *state) {
 
         case 0x20: exit(1); // undocumented instruction!! break;
         case 0x21: LXI(state, H);   break;
-        case 0x22: SHLd(state);     break;
+        case 0x22: SHLD(state);     break;
         case 0x23: break;
         case 0x24: break;
         case 0x25: break;
@@ -527,5 +529,5 @@ int main() {
     while (!done)
         done = emulate_op(&state);
 
-    return 0
+    return 0;
 }
