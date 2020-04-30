@@ -51,8 +51,8 @@ uint8_t set_zsp(system_state *state, uint8_t res) {
     state->cc.p = check_parity(res, 8);
 }
 
-uint16_t get_m_address(system_state *state) {
-    return (state->regs[H] << 8) | state->regs[L];
+uint16_t get_m_address(system_state *state, uint8_t reg1, uint8_t reg2) {
+    return (state->regs[reg1] << 8) | state->regs[reg2];
 }
 
 // -- Single register instructions --
@@ -61,7 +61,7 @@ void INR(system_state *state, uint8_t reg) {
     uint8_t res;
 
     if (reg == M) {
-        uint16_t address = get_m_address(state);
+        uint16_t address = get_m_address(state, H, L);
         res = ++state->memory[address];
     } else {
         res = ++state->regs[reg];
@@ -75,7 +75,7 @@ void DCR(system_state *state, uint8_t reg) {
     uint8_t res;
 
     if (reg == M) {
-        uint16_t address = get_m_address(state);
+        uint16_t address = get_m_address(state, H, L);
         res = --state->memory[address];
     } else {
         res = --state->regs[reg];
@@ -88,8 +88,13 @@ void DCR(system_state *state, uint8_t reg) {
 // -- Data transfer instructions --
 
 void STAX(system_state *state, uint8_t reg) {
-    uint16_t address = (state->regs[reg] << 8) | state->regs[reg+1];
+    uint16_t address = get_m_address(state, reg, reg + 1);
     state->memory[address] = state->regs[A];
+}
+
+void LDAX(system_state *state, uint8_t reg) {
+    uint16_t address = get_m_address(state, reg, reg + 1);
+    state->regs[A] = state->memory[address];
 }
 
 // -- Rotate accumulator instructions --
@@ -103,6 +108,18 @@ void RLC(system_state *state) {
 }
 
 // -- Register pair instructions --
+
+void DAD(system_state *state, uint8_t reg) {
+    uint16_t add1 = (state->regs[reg] << 8) | state->regs[reg + 1];
+    uint16_t add2 = (state->regs[H] << 8) | state->regs[L];
+
+    uint32_t sum = add1 + add2;
+
+    state->cc.cy = ((sum & 0x00010000) != 0);
+
+    state->regs[reg] = ((sum >> 8) & 0x000000ff)
+    state->regs[reg + 1] = (sum & 0x000000ff)
+}
 
 void INX(system_state *state, uint8_t reg) {
     if (reg == SP) {
@@ -133,7 +150,7 @@ void MVI(system_state *state, uint8_t reg) {
     unsigned char byte = state->memory[state->pc + 1];
 
     if (reg == M) {
-        uint16_t address = get_m_address(state);
+        uint16_t address = get_m_address(state, H, L);
         state->memory[address] = byte;
     } else {
         state->regs[reg] = byte;
@@ -156,9 +173,9 @@ int emulate_op(system_state *state) {
         case 0x05: DCR(state, B);   break;
         case 0x06: MVI(state, B);   break;
         case 0x07: RLC(state);      break;
-        case 0x08: break;
-        case 0x09: break;
-        case 0x0a: break;
+        case 0x08: exit(1) //undocumented instruction!! break;
+        case 0x09: DAD(state, B);   break;
+        case 0x0a: LDAX(state, B);  break;
         case 0x0b: break;
         case 0x0c: break;
         case 0x0d: break;
