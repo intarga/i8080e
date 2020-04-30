@@ -85,6 +85,10 @@ void DCR(system_state *state, uint8_t reg) {
     state->cc.ac = ((res & 0x0f) == 0x0f);
 }
 
+void CMA(system_state *state) {
+    state->regs[A] = ~state->regs[A];
+}
+
 void DAA(system_state *state) {
     if (state->cc.ac || (state->regs[A] & 0x0f) > 9) {
         state->cc.ac = 1;
@@ -214,6 +218,14 @@ void SHLD(system_state *state) {
     state->pc += 2;
 }
 
+void LHLD(system_state *state) {
+    uint16_t address = (state->memory[state->pc + 2] << 8) | state->memory[state->pc + 1];
+    state->regs[L] = state->memory[address];
+    state->regs[H] = state->memory[address + 1];
+
+    state->pc += 2;
+}
+
 // -- The emulation nation --
 
 int emulate_op(system_state *state) {
@@ -265,14 +277,14 @@ int emulate_op(system_state *state) {
         case 0x26: MVI(state, H);   break;
         case 0x27: DAA(state);      break;
 
-        case 0x28: break;
-        case 0x29: break;
-        case 0x2a: break;
-        case 0x2b: break;
-        case 0x2c: break;
-        case 0x2d: break;
-        case 0x2e: break;
-        case 0x2f: break;
+        case 0x28: exit(1); // undocumented instruction!! break;
+        case 0x29: DAD(state, H);   break;
+        case 0x2a: LHLD(state);     break;
+        case 0x2b: DCX(state, H);    break;
+        case 0x2c: INR(state, L);   break;
+        case 0x2d: DCR(state, L);   break;
+        case 0x2e: MVI(state, L);   break;
+        case 0x2f: CMA(state);      break;
 
         case 0x30: break;
         case 0x31: break;
