@@ -107,6 +107,14 @@ void RLC(system_state *state) {
         state->regs[A]++;
 }
 
+void RRC(system_state *state) {
+    state->cc.cy = (state->regs[A] & 0x01) != 0;
+
+    state->regs[A] >>= 1;
+    if (state->cc.cy)
+        state->regs[A] += 0x80;
+}
+
 // -- Register pair instructions --
 
 void DAD(system_state *state, uint8_t reg) {
@@ -186,10 +194,10 @@ int emulate_op(system_state *state) {
         case 0x09: DAD(state, B);   break;
         case 0x0a: LDAX(state, B);  break;
         case 0x0b: DCX(state, B);   break;
-        case 0x0c: break;
-        case 0x0d: break;
-        case 0x0e: break;
-        case 0x0f: break;
+        case 0x0c: INR(state, C);   break;
+        case 0x0d: DCR(state, C);   break;
+        case 0x0e: MVI(state, C);   break;
+        case 0x0f: RRC(state);      break;
 
         case 0x10: break;
         case 0x11: break;
