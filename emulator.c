@@ -56,7 +56,13 @@ uint16_t get_m_address(system_state *state, uint8_t reg1, uint8_t reg2) {
 }
 
 uint16_t get_immediate_address(system_state *state) {
-     (state->memory[state->pc + 2] << 8) | state->memory[state->pc + 1];
+     return (state->memory[state->pc + 2] << 8) | state->memory[state->pc + 1];
+}
+
+// -- Carry bit instructions --
+
+void STC(system_state *state) {
+    state->cc.cy = 1;
 }
 
 // -- Single register instructions --
@@ -219,6 +225,11 @@ void STA(system_state *state) {
     state->memory[address] = state->regs[A];
 }
 
+void LDA(system_state *state) {
+    uint16_t address = get_immediate_address(state);
+    state->regs[A] = state->memory[address];
+}
+
 void SHLD(system_state *state) {
     uint16_t address = get_immediate_address(state);
     state->memory[address] = state->regs[L];
@@ -297,20 +308,20 @@ int emulate_op(system_state *state) {
 
     case 0x30: exit(1); // undocumented instruction!! break;
     case 0x31: LXI(state, SP);  break;
-    case 0x32: break;
-    case 0x33: break;
-    case 0x34: break;
-    case 0x35: break;
-    case 0x36: break;
-    case 0x37: break;
+    case 0x32: STA(state);      break;
+    case 0x33: INX(state, SP);  break;
+    case 0x34: INR(state, M);   break;
+    case 0x35: DCR(state, M);   break;
+    case 0x36: MVI(state, M);   break;
+    case 0x37: STC(state);      break;
 
-    case 0x38: break;
-    case 0x39: break;
-    case 0x3a: break;
-    case 0x3b: break;
-    case 0x3c: break;
-    case 0x3d: break;
-    case 0x3e: break;
+    case 0x38: exit(1); // undocumented instruction!! break;
+    case 0x39: DAD(state, SP);  break;
+    case 0x3a: LDA(state);      break;
+    case 0x3b: DCX(state, SP);  break;
+    case 0x3c: INR(state, A);   break;
+    case 0x3d: DCR(state, A);   break;
+    case 0x3e: MVI(state, A);   break;
     case 0x3f: break;
 
     case 0x40: break;
