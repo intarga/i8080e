@@ -55,6 +55,10 @@ uint16_t get_m_address(system_state *state, uint8_t reg1, uint8_t reg2) {
     return (state->regs[reg1] << 8) | state->regs[reg2];
 }
 
+uint16_t get_immediate_address(system_state *state) {
+     (state->memory[state->pc + 2] << 8) | state->memory[state->pc + 1];
+}
+
 // -- Single register instructions --
 
 void INR(system_state *state, uint8_t reg) {
@@ -210,8 +214,13 @@ void MVI(system_state *state, uint8_t reg) {
 
 // -- Direct addressing instructions --
 
+void STA(system_state *state) {
+    uint16_t address = get_immediate_address(state);
+    state->memory[address] = state->regs[A];
+}
+
 void SHLD(system_state *state) {
-    uint16_t address = (state->memory[state->pc + 2] << 8) | state->memory[state->pc + 1];
+    uint16_t address = get_immediate_address(state);
     state->memory[address] = state->regs[L];
     state->memory[address + 1] = state->regs[H];
 
@@ -219,7 +228,7 @@ void SHLD(system_state *state) {
 }
 
 void LHLD(system_state *state) {
-    uint16_t address = (state->memory[state->pc + 2] << 8) | state->memory[state->pc + 1];
+    uint16_t address = get_immediate_address(state);
     state->regs[L] = state->memory[address];
     state->regs[H] = state->memory[address + 1];
 
@@ -286,8 +295,8 @@ int emulate_op(system_state *state) {
     case 0x2e: MVI(state, L);   break;
     case 0x2f: CMA(state);      break;
 
-    case 0x30: break;
-    case 0x31: break;
+    case 0x30: exit(1); // undocumented instruction!! break;
+    case 0x31: LXI(state, SP);  break;
     case 0x32: break;
     case 0x33: break;
     case 0x34: break;
