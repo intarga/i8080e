@@ -268,6 +268,12 @@ void LHLD(system_state *state) {
     state->pc += 2;
 }
 
+// -- HLT --
+
+void HLT(system_state *state) {
+    exit(0); //TODO implement interrupt response
+}
+
 // -- The emulation nation --
 
 int emulate_op(system_state *state) {
@@ -347,76 +353,76 @@ int emulate_op(system_state *state) {
     case 0x3f: CMC(state);          break;
 
     case 0x40: MOV(state, B, B);    break;
-    case 0x41: break;
-    case 0x42: break;
-    case 0x43: break;
-    case 0x44: break;
-    case 0x45: break;
-    case 0x46: break;
-    case 0x47: break;
+    case 0x41: MOV(state, B, C);    break;
+    case 0x42: MOV(state, B, D);    break;
+    case 0x43: MOV(state, B, E);    break;
+    case 0x44: MOV(state, B, H);    break;
+    case 0x45: MOV(state, B, L);    break;
+    case 0x46: MOV(state, B, M);    break;
+    case 0x47: MOV(state, B, A);    break;
 
-    case 0x48: break;
-    case 0x49: break;
-    case 0x4a: break;
-    case 0x4b: break;
-    case 0x4c: break;
-    case 0x4d: break;
-    case 0x4e: break;
-    case 0x4f: break;
+    case 0x48: MOV(state, C, B);    break;
+    case 0x49: MOV(state, C, C);    break;
+    case 0x4a: MOV(state, C, D);    break;
+    case 0x4b: MOV(state, C, E);    break;
+    case 0x4c: MOV(state, C, H);    break;
+    case 0x4d: MOV(state, C, L);    break;
+    case 0x4e: MOV(state, C, M);    break;
+    case 0x4f: MOV(state, C, A);    break;
 
-    case 0x50: break;
-    case 0x51: break;
-    case 0x52: break;
-    case 0x53: break;
-    case 0x54: break;
-    case 0x55: break;
-    case 0x56: break;
-    case 0x57: break;
+    case 0x50: MOV(state, D, B);    break;
+    case 0x51: MOV(state, D, C);    break;
+    case 0x52: MOV(state, D, D);    break;
+    case 0x53: MOV(state, D, E);    break;
+    case 0x54: MOV(state, D, H);    break;
+    case 0x55: MOV(state, D, L);    break;
+    case 0x56: MOV(state, D, M);    break;
+    case 0x57: MOV(state, D, A);    break;
 
-    case 0x58: break;
-    case 0x59: break;
-    case 0x5a: break;
-    case 0x5b: break;
-    case 0x5c: break;
-    case 0x5d: break;
-    case 0x5e: break;
-    case 0x5f: break;
+    case 0x58: MOV(state, E, B);    break;
+    case 0x59: MOV(state, E, C);    break;
+    case 0x5a: MOV(state, E, D);    break;
+    case 0x5b: MOV(state, E, E);    break;
+    case 0x5c: MOV(state, E, H);    break;
+    case 0x5d: MOV(state, E, L);    break;
+    case 0x5e: MOV(state, E, M);    break;
+    case 0x5f: MOV(state, E, A);    break;
 
-    case 0x60: break;
-    case 0x61: break;
-    case 0x62: break;
-    case 0x63: break;
-    case 0x64: break;
-    case 0x65: break;
-    case 0x66: break;
-    case 0x67: break;
+    case 0x60: MOV(state, H, B);    break;
+    case 0x61: MOV(state, H, C);    break;
+    case 0x62: MOV(state, H, D);    break;
+    case 0x63: MOV(state, H, E);    break;
+    case 0x64: MOV(state, H, H);    break;
+    case 0x65: MOV(state, H, L);    break;
+    case 0x66: MOV(state, H, M);    break;
+    case 0x67: MOV(state, H, A);    break;
 
-    case 0x68: break;
-    case 0x69: break;
-    case 0x6a: break;
-    case 0x6b: break;
-    case 0x6c: break;
-    case 0x6d: break;
-    case 0x6e: break;
-    case 0x6f: break;
+    case 0x68: MOV(state, L, B);    break;
+    case 0x69: MOV(state, L, C);    break;
+    case 0x6a: MOV(state, L, D);    break;
+    case 0x6b: MOV(state, L, E);    break;
+    case 0x6c: MOV(state, L, H);    break;
+    case 0x6d: MOV(state, L, L);    break;
+    case 0x6e: MOV(state, L, M);    break;
+    case 0x6f: MOV(state, L, A);    break;
 
-    case 0x70: break;
-    case 0x71: break;
-    case 0x72: break;
-    case 0x73: break;
-    case 0x74: break;
-    case 0x75: break;
-    case 0x76: break;
-    case 0x77: break;
+    case 0x70: MOV(state, M, B);    break;
+    case 0x71: MOV(state, M, C);    break;
+    case 0x72: MOV(state, M, D);    break;
+    case 0x73: MOV(state, M, E);    break;
+    case 0x74: MOV(state, M, H);    break;
+    case 0x75: MOV(state, M, L);    break;
+    case 0x76: HLT(state);          break;
+    case 0x77: MOV(state, M, A);    break;
 
-    case 0x78: break;
-    case 0x79: break;
-    case 0x7a: break;
-    case 0x7b: break;
-    case 0x7c: break;
-    case 0x7d: break;
-    case 0x7e: break;
-    case 0x7f: break;
+    case 0x78: MOV(state, A, B);    break;
+    case 0x79: MOV(state, A, C);    break;
+    case 0x7a: MOV(state, A, D);    break;
+    case 0x7b: MOV(state, A, E);    break;
+    case 0x7c: MOV(state, A, H);    break;
+    case 0x7d: MOV(state, A, L);    break;
+    case 0x7e: MOV(state, A, M);    break;
+    case 0x7f: MOV(state, A, A);    break;
 
     case 0x80: break;
     case 0x81: break;
