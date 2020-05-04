@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 // -- Register names --
+
 #define A 0 // accumulator
 #define B 1
 #define C 2
@@ -65,6 +66,10 @@ void STC(system_state *state) {
     state->cc.cy = 1;
 }
 
+void CMC(system_state *state) {
+    state->cc.cy = !state->cc.cy;
+}
+
 // -- Single register instructions --
 
 void INR(system_state *state, uint8_t reg) {
@@ -112,6 +117,23 @@ void DAA(system_state *state) {
 }
 
 // -- Data transfer instructions --
+
+void MOV(system_state *state, uint8_t reg1, uint8_t reg2) {
+    unsigned char byte;
+    if (reg2 == M) {
+        uint16_t address = get_m_address(state, H, L);
+        byte = state->memory[address];
+    } else {
+        byte = state->regs[reg2];
+    }
+
+    if (reg1 == M) {
+        uint16_t address = get_m_address(state, H, L);
+        state->memory[address] = byte;
+    } else {
+        state->regs[reg1] = byte;
+    }
+}
 
 void STAX(system_state *state, uint8_t reg) {
     uint16_t address = get_m_address(state, reg, reg + 1);
@@ -253,78 +275,78 @@ int emulate_op(system_state *state) {
 
     switch (op_code) {
     case 0x00: break; // NOP
-    case 0x01: LXI(state, B);   break;
-    case 0x02: STAX(state, B);  break;
-    case 0x03: INX(state, B);   break;
-    case 0x04: INR(state, B);   break;
-    case 0x05: DCR(state, B);   break;
-    case 0x06: MVI(state, B);   break;
-    case 0x07: RLC(state);      break;
+    case 0x01: LXI(state, B);       break;
+    case 0x02: STAX(state, B);      break;
+    case 0x03: INX(state, B);       break;
+    case 0x04: INR(state, B);       break;
+    case 0x05: DCR(state, B);       break;
+    case 0x06: MVI(state, B);       break;
+    case 0x07: RLC(state);          break;
 
     case 0x08: exit(1); // undocumented instruction!! break;
-    case 0x09: DAD(state, B);   break;
-    case 0x0a: LDAX(state, B);  break;
-    case 0x0b: DCX(state, B);   break;
-    case 0x0c: INR(state, C);   break;
-    case 0x0d: DCR(state, C);   break;
-    case 0x0e: MVI(state, C);   break;
-    case 0x0f: RRC(state);      break;
+    case 0x09: DAD(state, B);       break;
+    case 0x0a: LDAX(state, B);      break;
+    case 0x0b: DCX(state, B);       break;
+    case 0x0c: INR(state, C);       break;
+    case 0x0d: DCR(state, C);       break;
+    case 0x0e: MVI(state, C);       break;
+    case 0x0f: RRC(state);          break;
 
     case 0x10: exit(1); // undocumented instruction!! break;
-    case 0x11: LXI(state, D);   break;
-    case 0x12: STAX(state, D);  break;
-    case 0x13: INX(state, D);   break;
-    case 0x14: INR(state, D);   break;
-    case 0x15: DCR(state, D);   break;
-    case 0x16: MVI(state, D);   break;
-    case 0x17: RAL(state);      break;
+    case 0x11: LXI(state, D);       break;
+    case 0x12: STAX(state, D);      break;
+    case 0x13: INX(state, D);       break;
+    case 0x14: INR(state, D);       break;
+    case 0x15: DCR(state, D);       break;
+    case 0x16: MVI(state, D);       break;
+    case 0x17: RAL(state);          break;
 
     case 0x18: exit(1); // undocumented instruction!! break;
-    case 0x19: DAD(state, D);   break;
-    case 0x1a: LDAX(state, D);  break;
-    case 0x1b: DCX(state, D);   break;
-    case 0x1c: INR(state, E);   break;
-    case 0x1d: DCR(state, E);   break;
-    case 0x1e: MVI(state, E);   break;
-    case 0x1f: RAR(state);      break;
+    case 0x19: DAD(state, D);       break;
+    case 0x1a: LDAX(state, D);      break;
+    case 0x1b: DCX(state, D);       break;
+    case 0x1c: INR(state, E);       break;
+    case 0x1d: DCR(state, E);       break;
+    case 0x1e: MVI(state, E);       break;
+    case 0x1f: RAR(state);          break;
 
     case 0x20: exit(1); // undocumented instruction!! break;
-    case 0x21: LXI(state, H);   break;
-    case 0x22: SHLD(state);     break;
-    case 0x23: INX(state, H);   break;
-    case 0x24: INR(state, H);   break;
-    case 0x25: DCR(state, H);   break;
-    case 0x26: MVI(state, H);   break;
-    case 0x27: DAA(state);      break;
+    case 0x21: LXI(state, H);       break;
+    case 0x22: SHLD(state);         break;
+    case 0x23: INX(state, H);       break;
+    case 0x24: INR(state, H);       break;
+    case 0x25: DCR(state, H);       break;
+    case 0x26: MVI(state, H);       break;
+    case 0x27: DAA(state);          break;
 
     case 0x28: exit(1); // undocumented instruction!! break;
-    case 0x29: DAD(state, H);   break;
-    case 0x2a: LHLD(state);     break;
-    case 0x2b: DCX(state, H);   break;
-    case 0x2c: INR(state, L);   break;
-    case 0x2d: DCR(state, L);   break;
-    case 0x2e: MVI(state, L);   break;
-    case 0x2f: CMA(state);      break;
+    case 0x29: DAD(state, H);       break;
+    case 0x2a: LHLD(state);         break;
+    case 0x2b: DCX(state, H);       break;
+    case 0x2c: INR(state, L);       break;
+    case 0x2d: DCR(state, L);       break;
+    case 0x2e: MVI(state, L);       break;
+    case 0x2f: CMA(state);          break;
 
     case 0x30: exit(1); // undocumented instruction!! break;
-    case 0x31: LXI(state, SP);  break;
-    case 0x32: STA(state);      break;
-    case 0x33: INX(state, SP);  break;
-    case 0x34: INR(state, M);   break;
-    case 0x35: DCR(state, M);   break;
-    case 0x36: MVI(state, M);   break;
-    case 0x37: STC(state);      break;
+    case 0x31: LXI(state, SP);      break;
+    case 0x32: STA(state);          break;
+    case 0x33: INX(state, SP);      break;
+    case 0x34: INR(state, M);       break;
+    case 0x35: DCR(state, M);       break;
+    case 0x36: MVI(state, M);       break;
+    case 0x37: STC(state);          break;
 
     case 0x38: exit(1); // undocumented instruction!! break;
-    case 0x39: DAD(state, SP);  break;
-    case 0x3a: LDA(state);      break;
-    case 0x3b: DCX(state, SP);  break;
-    case 0x3c: INR(state, A);   break;
-    case 0x3d: DCR(state, A);   break;
-    case 0x3e: MVI(state, A);   break;
-    case 0x3f: break;
+    case 0x39: DAD(state, SP);      break;
+    case 0x3a: LDA(state);          break;
+    case 0x3b: DCX(state, SP);      break;
+    case 0x3c: INR(state, A);       break;
+    case 0x3d: DCR(state, A);       break;
+    case 0x3e: MVI(state, A);       break;
+    case 0x3f: CMC(state);          break;
 
-    case 0x40: break;
+    case 0x40: MOV(state, B, B);    break;
     case 0x41: break;
     case 0x42: break;
     case 0x43: break;

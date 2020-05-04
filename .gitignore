@@ -8,3 +8,6 @@ docs/*
 # binaries
 8080-emulator
 8080-disassembler
+
+# random junk
+.ccls-cache/*
