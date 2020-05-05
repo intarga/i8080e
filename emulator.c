@@ -191,6 +191,28 @@ void ADC(system_state *state, uint8_t reg) {
     set_zsp(state, state->regs[A]);
 }
 
+void SUB(system_state *state, uint8_t reg) {
+    uint8_t sub1 = state->regs[A];
+    uint8_t sub2;
+
+    if (reg == M) {
+        uint16_t address = get_m_address(state, H, L);
+        sub2 = ~state->memory[address];
+    } else {
+        sub2 = ~state->regs[reg];
+    }
+
+    state->cc.ac = (((sub1 & 0x0f) + (sub2 & 0x0f) + 1) & 0xf0) != 0;
+
+    uint16_t res = sub1 + sub2 + 1;
+
+    state->cc.cy = (res & 0x0f00) == 0;
+
+    state->regs[A] = res & 0xff;
+
+    set_zsp(state, state->regs[A]);
+}
+
 // -- Rotate accumulator instructions --
 
 void RLC(system_state *state) {
@@ -492,14 +514,14 @@ int emulate_op(system_state *state) {
     case 0x8e: ADC(state, M);       break;
     case 0x8f: ADC(state, A);       break;
 
-    case 0x90: break;
-    case 0x91: break;
-    case 0x92: break;
-    case 0x93: break;
-    case 0x94: break;
-    case 0x95: break;
-    case 0x96: break;
-    case 0x97: break;
+    case 0x90: SUB(state, B);       break;
+    case 0x91: SUB(state, C);       break;
+    case 0x92: SUB(state, D);       break;
+    case 0x93: SUB(state, E);       break;
+    case 0x94: SUB(state, H);       break;
+    case 0x95: SUB(state, L);       break;
+    case 0x96: SUB(state, M);       break;
+    case 0x97: SUB(state, A);       break;
 
     case 0x98: break;
     case 0x99: break;
