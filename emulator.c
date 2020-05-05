@@ -145,6 +145,30 @@ void LDAX(system_state *state, uint8_t reg) {
     state->regs[A] = state->memory[address];
 }
 
+// -- Register or memory to accumulator instructions --
+
+void ADD(system_state *state, uint8_t reg) {
+    uint8_t add1 = state->regs[A];
+    uint8_t add2;
+
+    if (reg == M) {
+        uint16_t address = get_m_address(state, H, L);
+        add2 = state->memory[address];
+    } else {
+        add2 = state->regs[reg];
+    }
+
+    state->cc.ac = (((add1 & 0x0f) + (add2 & 0x0f)) & 0xf0) != 0;
+
+    uint16_t res = add1 + add2;
+
+    state->cc.cy = (res & 0x0100) != 0;
+
+    state->regs[A] = (uint8_t) res;
+
+    set_zsp(state, state->regs[A]);
+}
+
 // -- Rotate accumulator instructions --
 
 void RLC(system_state *state) {
@@ -424,14 +448,14 @@ int emulate_op(system_state *state) {
     case 0x7e: MOV(state, A, M);    break;
     case 0x7f: MOV(state, A, A);    break;
 
-    case 0x80: break;
-    case 0x81: break;
-    case 0x82: break;
-    case 0x83: break;
-    case 0x84: break;
-    case 0x85: break;
-    case 0x86: break;
-    case 0x87: break;
+    case 0x80: ADD(state, B);       break;
+    case 0x81: ADD(state, C);       break;
+    case 0x82: ADD(state, D);       break;
+    case 0x83: ADD(state, E);       break;
+    case 0x84: ADD(state, H);       break;
+    case 0x85: ADD(state, L);       break;
+    case 0x86: ADD(state, M);       break;
+    case 0x87: ADD(state, A);       break;
 
     case 0x88: break;
     case 0x89: break;
