@@ -291,11 +291,15 @@ void MVI(system_state *state, uint8_t reg) {
 void STA(system_state *state) {
     uint16_t address = get_immediate_address(state);
     state->memory[address] = state->regs[A];
+
+    state->pc += 2;
 }
 
 void LDA(system_state *state) {
     uint16_t address = get_immediate_address(state);
     state->regs[A] = state->memory[address];
+
+    state->pc += 2;
 }
 
 void SHLD(system_state *state) {
