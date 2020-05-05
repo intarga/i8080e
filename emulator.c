@@ -162,9 +162,31 @@ void ADD(system_state *state, uint8_t reg) {
 
     uint16_t res = add1 + add2;
 
-    state->cc.cy = (res & 0x0100) != 0;
+    state->cc.cy = (res & 0x0f00) != 0;
 
-    state->regs[A] = (uint8_t) res;
+    state->regs[A] = res & 0xff;
+
+    set_zsp(state, state->regs[A]);
+}
+
+void ADC(system_state *state, uint8_t reg) {
+    uint8_t add1 = state->regs[A];
+    uint8_t add2;
+
+    if (reg == M) {
+        uint16_t address = get_m_address(state, H, L);
+        add2 = state->memory[address];
+    } else {
+        add2 = state->regs[reg];
+    }
+
+    state->cc.ac = (((add1 & 0x0f) + (add2 & 0x0f) + state->cc.cy) & 0xf0) != 0;
+
+    uint16_t res = add1 + add2 + state->cc.cy;
+
+    state->cc.cy = (res & 0x0f00) != 0;
+
+    state->regs[A] = res & 0xff;
 
     set_zsp(state, state->regs[A]);
 }
@@ -457,14 +479,14 @@ int emulate_op(system_state *state) {
     case 0x86: ADD(state, M);       break;
     case 0x87: ADD(state, A);       break;
 
-    case 0x88: break;
-    case 0x89: break;
-    case 0x8a: break;
-    case 0x8b: break;
-    case 0x8c: break;
-    case 0x8d: break;
-    case 0x8e: break;
-    case 0x8f: break;
+    case 0x88: ADC(state, B);       break;
+    case 0x89: ADC(state, C);       break;
+    case 0x8a: ADC(state, D);       break;
+    case 0x8b: ADC(state, E);       break;
+    case 0x8c: ADC(state, H);       break;
+    case 0x8d: ADC(state, L);       break;
+    case 0x8e: ADC(state, M);       break;
+    case 0x8f: ADC(state, A);       break;
 
     case 0x90: break;
     case 0x91: break;
