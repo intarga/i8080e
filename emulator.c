@@ -235,6 +235,21 @@ void SBB(system_state *state, uint8_t reg) {
     set_zsp(state, state->regs[A]);
 }
 
+void ANA(system_state *state, uint8_t reg) {
+    uint8_t and;
+    if (reg == M) {
+        uint16_t address = get_m_address(state, H, L);
+        and = state->memory[address];
+    } else {
+        and = state->regs[reg];
+    }
+
+    state->regs[A] = state->regs[A] & and;
+
+    state->cc.cy = 0;
+    set_zsp(state, state->regs[A]);
+}
+
 // -- Rotate accumulator instructions --
 
 void RLC(system_state *state) {
@@ -554,14 +569,14 @@ int emulate_op(system_state *state) {
     case 0x9e: SBB(state, M);       break;
     case 0x9f: SBB(state, A);       break;
 
-    case 0xa0: break;
-    case 0xa1: break;
-    case 0xa2: break;
-    case 0xa3: break;
-    case 0xa4: break;
-    case 0xa5: break;
-    case 0xa6: break;
-    case 0xa7: break;
+    case 0xa0: ANA(state, B);       break;
+    case 0xa1: ANA(state, C);       break;
+    case 0xa2: ANA(state, D);       break;
+    case 0xa3: ANA(state, E);       break;
+    case 0xa4: ANA(state, H);       break;
+    case 0xa5: ANA(state, L);       break;
+    case 0xa6: ANA(state, M);       break;
+    case 0xa7: ANA(state, A);       break;
 
     case 0xa8: break;
     case 0xa9: break;
