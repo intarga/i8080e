@@ -280,6 +280,27 @@ void ORA(system_state *state, uint8_t reg) {
     set_zsp(state, state->regs[A]);
 }
 
+void CMP(system_state *state, uint8_t reg) {
+    uint8_t cmp1 = state->regs[A];
+    uint8_t cmp2;
+
+    if (reg == M) {
+        uint16_t address = get_m_address(state, H, L);
+        cmp2 = ~state->memory[address];
+    } else {
+        cmp2 = ~state->regs[reg];
+    }
+
+    // might be wrong... data book didn't specify the behaviour
+    state->cc.ac = (((state->regs[A] & 0x0f) + (cmp2 & 0x0f) + 1) & 0xf0) != 0;
+
+    uint16_t res = cmp1 + cmp2 + 1;
+
+    state->cc.cy = (res & 0x0f00) == 0;
+
+    set_zsp(state, res & 0xff);
+}
+
 // -- Rotate accumulator instructions --
 
 void RLC(system_state *state) {
@@ -626,14 +647,14 @@ int emulate_op(system_state *state) {
     case 0xb6: ORA(state, M);       break;
     case 0xb7: ORA(state, A);       break;
 
-    case 0xb8: break;
-    case 0xb9: break;
-    case 0xba: break;
-    case 0xbb: break;
-    case 0xbc: break;
-    case 0xbd: break;
-    case 0xbe: break;
-    case 0xbf: break;
+    case 0xb8: CMP(state, B);       break;
+    case 0xb9: CMP(state, C);       break;
+    case 0xba: CMP(state, D);       break;
+    case 0xbb: CMP(state, E);       break;
+    case 0xbc: CMP(state, H);       break;
+    case 0xbd: CMP(state, L);       break;
+    case 0xbe: CMP(state, M);       break;
+    case 0xbf: CMP(state, A);       break;
 
     case 0xc0: break;
     case 0xc1: break;
