@@ -250,6 +250,21 @@ void ANA(system_state *state, uint8_t reg) {
     set_zsp(state, state->regs[A]);
 }
 
+void XRA(system_state *state, uint8_t reg) {
+    uint8_t xor;
+    if (reg == M) {
+        uint16_t address = get_m_address(state, H, L);
+        xor = state->memory[address];
+    } else {
+        xor = state->regs[reg];
+    }
+
+    state->regs[A] = state->regs[A] ^ xor;
+
+    state->cc.cy = 0;
+    set_zsp(state, state->regs[A]);
+}
+
 // -- Rotate accumulator instructions --
 
 void RLC(system_state *state) {
@@ -578,14 +593,14 @@ int emulate_op(system_state *state) {
     case 0xa6: ANA(state, M);       break;
     case 0xa7: ANA(state, A);       break;
 
-    case 0xa8: break;
-    case 0xa9: break;
-    case 0xaa: break;
-    case 0xab: break;
-    case 0xac: break;
-    case 0xad: break;
-    case 0xae: break;
-    case 0xaf: break;
+    case 0xa8: XRA(state, B);       break;
+    case 0xa9: XRA(state, C);       break;
+    case 0xaa: XRA(state, D);       break;
+    case 0xab: XRA(state, E);       break;
+    case 0xac: XRA(state, H);       break;
+    case 0xad: XRA(state, L);       break;
+    case 0xae: XRA(state, M);       break;
+    case 0xaf: XRA(state, A);       break;
 
     case 0xb0: break;
     case 0xb1: break;
