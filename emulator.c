@@ -265,6 +265,21 @@ void XRA(system_state *state, uint8_t reg) {
     set_zsp(state, state->regs[A]);
 }
 
+void ORA(system_state *state, uint8_t reg) {
+    uint8_t or;
+    if (reg == M) {
+        uint16_t address = get_m_address(state, H, L);
+        or = state->memory[address];
+    } else {
+        or = state->regs[reg];
+    }
+
+    state->regs[A] = state->regs[A] | or;
+
+    state->cc.cy = 0;
+    set_zsp(state, state->regs[A]);
+}
+
 // -- Rotate accumulator instructions --
 
 void RLC(system_state *state) {
@@ -602,14 +617,14 @@ int emulate_op(system_state *state) {
     case 0xae: XRA(state, M);       break;
     case 0xaf: XRA(state, A);       break;
 
-    case 0xb0: break;
-    case 0xb1: break;
-    case 0xb2: break;
-    case 0xb3: break;
-    case 0xb4: break;
-    case 0xb5: break;
-    case 0xb6: break;
-    case 0xb7: break;
+    case 0xb0: ORA(state, B);       break;
+    case 0xb1: ORA(state, C);       break;
+    case 0xb2: ORA(state, D);       break;
+    case 0xb3: ORA(state, E);       break;
+    case 0xb4: ORA(state, H);       break;
+    case 0xb5: ORA(state, L);       break;
+    case 0xb6: ORA(state, M);       break;
+    case 0xb7: ORA(state, A);       break;
 
     case 0xb8: break;
     case 0xb9: break;
