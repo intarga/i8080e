@@ -540,6 +540,73 @@ void JPO(system_state *state) {
         state->pc += 2;
 }
 
+// -- Call subroutine instructions --
+
+void CALL(system_state *state) {
+    uint16_t return_addr = state->pc + 2;
+    state->memory[state->sp - 1] = return_addr >> 8;
+    state->memory[state->sp - 2] = return_addr & 0xff;
+    state->sp -= 2;
+
+    JMP(state);
+}
+
+void CC(system_state *state) {
+    if (state->cc.cy)
+        CALL(state);
+    else
+        state->pc += 2;
+}
+
+void CNC(system_state *state) {
+    if (!state->cc.cy)
+        CALL(state);
+    else
+        state->pc += 2;
+}
+
+void CZ(system_state *state) {
+    if (state->cc.z)
+        CALL(state);
+    else
+        state->pc += 2;
+}
+
+void CNZ(system_state *state) {
+    if (!state->cc.z)
+        CALL(state);
+    else
+        state->pc += 2;
+}
+
+void CM(system_state *state) {
+    if (state->cc.s)
+        CALL(state);
+    else
+        state->pc += 2;
+}
+
+void CP(system_state *state) {
+    if (!state->cc.s)
+        CALL(state);
+    else
+        state->pc += 2;
+}
+
+void CPE(system_state *state) {
+    if (state->cc.p)
+        CALL(state);
+    else
+        state->pc += 2;
+}
+
+void CPO(system_state *state) {
+    if (!state->cc.p)
+        CALL(state);
+    else
+        state->pc += 2;
+}
+
 // -- Return from subroutine instructions --
 
 void RET(system_state *state) {
@@ -818,8 +885,8 @@ int emulate_op(system_state *state) {
     case 0xc0: RNZ(state);          break;
     case 0xc1: POP(state, B);       break;
     case 0xc2: JNZ(state);          break;
-    case 0xc3: break;
-    case 0xc4: break;
+    case 0xc3: JMP(state);          break;
+    case 0xc4: CNZ(state);          break;
     case 0xc5: break;
     case 0xc6: break;
     case 0xc7: break;
