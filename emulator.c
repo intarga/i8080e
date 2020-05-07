@@ -441,6 +441,23 @@ void MVI(system_state *state, uint8_t reg) {
     state->pc++;
 }
 
+void ADI(system_state *state) {
+    uint8_t add1 = state->regs[A];
+    uint8_t add2 = state->memory[state->pc + 1];
+
+    state->cc.ac = (((add1 & 0x0f) + (add2 & 0x0f)) & 0xf0) != 0;
+
+    uint16_t res = add1 + add2;
+
+    state->cc.cy = (res & 0x0f00) != 0;
+
+    state->regs[A] = res & 0xff;
+
+    set_zsp(state, state->regs[A]);
+
+    state->pc++;
+}
+
 // -- Direct addressing instructions --
 
 void STA(system_state *state) {
@@ -887,8 +904,8 @@ int emulate_op(system_state *state) {
     case 0xc2: JNZ(state);          break;
     case 0xc3: JMP(state);          break;
     case 0xc4: CNZ(state);          break;
-    case 0xc5: break;
-    case 0xc6: break;
+    case 0xc5: PUSH(state, B);      break;
+    case 0xc6: ADI(state);          break;
     case 0xc7: break;
 
     case 0xc8: break;
