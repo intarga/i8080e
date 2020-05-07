@@ -428,6 +428,53 @@ void LHLD(system_state *state) {
     state->pc += 2;
 }
 
+// -- Return from subroutine instructions --
+
+void RET(system_state *state) {
+    state->pc = state->memory[state->sp] | (state->memory[state->sp+1] << 8);
+    state->sp += 2;
+}
+
+void RC(system_state *state) {
+    if (state->cc.cy)
+        RET(state);
+}
+
+void RNC(system_state *state) {
+    if (!state->cc.cy)
+        RET(state);
+}
+
+void RZ(system_state *state) {
+    if (state->cc.z)
+        RET(state);
+}
+
+void RNZ(system_state *state) {
+    if (!state->cc.z)
+        RET(state);
+}
+
+void RM(system_state *state) {
+    if (state->cc.s)
+        RET(state);
+}
+
+void RP(system_state *state) {
+    if (!state->cc.s)
+        RET(state);
+}
+
+void RPE(system_state *state) {
+    if (state->cc.p)
+        RET(state);
+}
+
+void RPO(system_state *state) {
+    if (!state->cc.p)
+        RET(state);
+}
+
 // -- HLT --
 
 void HLT(system_state *state) {
@@ -656,7 +703,7 @@ int emulate_op(system_state *state) {
     case 0xbe: CMP(state, M);       break;
     case 0xbf: CMP(state, A);       break;
 
-    case 0xc0: break;
+    case 0xc0: RNZ(state);          break;
     case 0xc1: break;
     case 0xc2: break;
     case 0xc3: break;
