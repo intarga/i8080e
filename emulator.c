@@ -360,6 +360,28 @@ void PUSH(system_state *state, uint8_t reg) {
     state->sp -= 2;
 }
 
+void POP(system_state *state, uint8_t reg) {
+    uint8_t byte1 = state->memory[state->sp + 1];
+    uint8_t byte2 = state->memory[state->sp];
+
+    if (reg == PSW) {
+        //bytes might be reversed? it's right according to the manual, but
+        //seems reversed compared to PUSH???
+        state->cc.s = byte1 >> 7;
+        state->cc.z = (byte1 >> 6) & 1;
+        state->cc.ac = (byte1 >> 4) & 1;
+        state->cc.p = (byte1 >> 2) & 1;
+        state->cc.cy = byte1 & 1;
+
+        state->regs[A] = byte2;
+    } else {
+        state->regs[reg] = byte1;
+        state->regs[reg + 1] = byte2;
+    }
+
+    state->sp += 2;
+}
+
 void DAD(system_state *state, uint8_t reg) {
     uint16_t add1 = (state->regs[reg] << 8) | state->regs[reg + 1];
     uint16_t add2 = (state->regs[H] << 8) | state->regs[L];
@@ -727,7 +749,7 @@ int emulate_op(system_state *state) {
     case 0xbf: CMP(state, A);       break;
 
     case 0xc0: RNZ(state);          break;
-    case 0xc1: break;
+    case 0xc1: POP(state, B);       break;
     case 0xc2: break;
     case 0xc3: break;
     case 0xc4: break;
