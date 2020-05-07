@@ -14,6 +14,7 @@
 #define L 6
 #define SP 7 // stack pointer
 #define M 8 // memory reference
+#define PSW 9
 
 // -- System state --
 
@@ -336,6 +337,28 @@ void RAR(system_state *state) {
 }
 
 // -- Register pair instructions --
+
+void PUSH(system_state *state, uint8_t reg) {
+    uint8_t byte1;
+    uint8_t byte2;
+    if (reg == PSW) {
+        byte1 = state->regs[A];
+        byte2 = (state->cc.s << 7)
+            | (state->cc.z << 6)
+            | (state->cc.ac << 4)
+            | (state->cc.p << 2)
+            | (1 << 1)
+            | (state->cc.cy);
+    } else {
+        byte1 = state->regs[reg];
+        byte2 = state->regs[reg + 1];
+    }
+
+    state->memory[state->sp - 1] = byte1;
+    state->memory[state->sp - 2] = byte2;
+
+    state->sp -= 2;
+}
 
 void DAD(system_state *state, uint8_t reg) {
     uint16_t add1 = (state->regs[reg] << 8) | state->regs[reg + 1];
