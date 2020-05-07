@@ -671,6 +671,18 @@ void RPO(system_state *state) {
         RET(state);
 }
 
+// -- RST --
+
+void RST(system_state *state, uint16_t offset) {
+    uint16_t return_addr = state->pc + 2;
+    state->memory[state->sp - 1] = return_addr >> 8;
+    state->memory[state->sp - 2] = return_addr & 0xff;
+    state->sp -= 2;
+
+    state->pc = offset << 3;
+    //decrement pc?
+}
+
 // -- HLT --
 
 void HLT(system_state *state) {
@@ -906,7 +918,7 @@ int emulate_op(system_state *state) {
     case 0xc4: CNZ(state);          break;
     case 0xc5: PUSH(state, B);      break;
     case 0xc6: ADI(state);          break;
-    case 0xc7: break;
+    case 0xc7: RST(state, 0);       break;
 
     case 0xc8: break;
     case 0xc9: break;
