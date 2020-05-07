@@ -473,6 +473,73 @@ void LHLD(system_state *state) {
     state->pc += 2;
 }
 
+// -- Jump instructions --
+
+void PCHL(system_state *state) {
+    state->pc = get_m_address(state, H, L);
+    //decrement pc???
+}
+
+void JMP(system_state *state) {
+    state->pc = get_immediate_address(state);
+    //decrement pc???
+}
+
+void JC(system_state *state) {
+    if (state->cc.cy)
+        JMP(state);
+    else
+        state->pc += 2;
+}
+
+void JNC(system_state *state) {
+    if (!state->cc.cy)
+        JMP(state);
+    else
+        state->pc += 2;
+}
+
+void JZ(system_state *state) {
+    if (state->cc.z)
+        JMP(state);
+    else
+        state->pc += 2;
+}
+
+void JNZ(system_state *state) {
+    if (!state->cc.z)
+        JMP(state);
+    else
+        state->pc += 2;
+}
+
+void JM(system_state *state) {
+    if (state->cc.s)
+        JMP(state);
+    else
+        state->pc += 2;
+}
+
+void JP(system_state *state) {
+    if (!state->cc.s)
+        JMP(state);
+    else
+        state->pc += 2;
+}
+void JPE(system_state *state) {
+    if (state->cc.p)
+        JMP(state);
+    else
+        state->pc += 2;
+}
+
+void JPO(system_state *state) {
+    if (!state->cc.p)
+        JMP(state);
+    else
+        state->pc += 2;
+}
+
 // -- Return from subroutine instructions --
 
 void RET(system_state *state) {
@@ -750,7 +817,7 @@ int emulate_op(system_state *state) {
 
     case 0xc0: RNZ(state);          break;
     case 0xc1: POP(state, B);       break;
-    case 0xc2: break;
+    case 0xc2: JNZ(state);          break;
     case 0xc3: break;
     case 0xc4: break;
     case 0xc5: break;
