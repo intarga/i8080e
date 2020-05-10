@@ -458,6 +458,23 @@ void ADI(system_state *state) {
     state->pc++;
 }
 
+void ACI(system_state *state) {
+    uint8_t add1 = state->regs[A];
+    uint8_t add2 = state->memory[state->pc + 1];
+
+    state->cc.ac = (((add1 & 0x0f) + (add2 & 0x0f) + 1) & 0xf0) != 0;
+
+    uint16_t res = add1 + add2 + 1;
+
+    state->cc.cy = (res & 0x0f00) != 0;
+
+    state->regs[A] = res & 0xff;
+
+    set_zsp(state, state->regs[A]);
+
+    state->pc++;
+}
+
 // -- Direct addressing instructions --
 
 void STA(system_state *state) {
@@ -920,13 +937,13 @@ int emulate_op(system_state *state) {
     case 0xc6: ADI(state);          break;
     case 0xc7: RST(state, 0);       break;
 
-    case 0xc8: break;
-    case 0xc9: break;
-    case 0xca: break;
-    case 0xcb: break;
-    case 0xcc: break;
-    case 0xcd: break;
-    case 0xce: break;
+    case 0xc8: RZ(state);           break;
+    case 0xc9: RET(state);          break;
+    case 0xca: JZ(state);           break;
+    case 0xcb: exit(1); // undocumented instruction!! break;
+    case 0xcc: CZ(state);           break;
+    case 0xcd: CALL(state);         break;
+    case 0xce: ACI(state);          break;
     case 0xcf: break;
 
     case 0xd0: break;
