@@ -700,6 +700,18 @@ void RST(system_state *state, uint16_t offset) {
     //decrement pc?
 }
 
+// -- Input/output instructions --
+
+void IN(system_state *state) {
+    //TODO
+    state->pc++;
+}
+
+void OUT(system_state *state) {
+    //TODO
+    state->pc++;
+}
+
 // -- HLT --
 
 void HLT(system_state *state) {
@@ -944,12 +956,12 @@ int emulate_op(system_state *state) {
     case 0xcc: CZ(state);           break;
     case 0xcd: CALL(state);         break;
     case 0xce: ACI(state);          break;
-    case 0xcf: break;
+    case 0xcf: RST(state, 1);       break;
 
-    case 0xd0: break;
-    case 0xd1: break;
-    case 0xd2: break;
-    case 0xd3: break;
+    case 0xd0: RNC(state);          break;
+    case 0xd1: POP(state, D);       break;
+    case 0xd2: JNC(state);          break;
+    case 0xd3: OUT(state);          break;
     case 0xd4: break;
     case 0xd5: break;
     case 0xd6: break;
