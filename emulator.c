@@ -475,6 +475,21 @@ void ACI(system_state *state) {
     state->pc++;
 }
 
+void SUI(system_state *state) {
+    uint8_t sub1 = state->regs[A];
+    uint8_t sub2 = ~state->memory[state->pc + 1];
+
+    state->cc.ac = (((sub1 & 0x0f) + (sub2 & 0x0f) + 1) & 0xf0) != 0;
+
+    uint16_t res = sub1 + sub2 + 1;
+
+    state->cc.cy = (res & 0x0f00) == 0;
+
+    state->regs[A] = res & 0xff;
+
+    set_zsp(state, state->regs[A]);
+}
+
 // -- Direct addressing instructions --
 
 void STA(system_state *state) {
@@ -962,9 +977,9 @@ int emulate_op(system_state *state) {
     case 0xd1: POP(state, D);       break;
     case 0xd2: JNC(state);          break;
     case 0xd3: OUT(state);          break;
-    case 0xd4: break;
-    case 0xd5: break;
-    case 0xd6: break;
+    case 0xd4: CNC(state);          break;
+    case 0xd5: PUSH(state, D);      break;
+    case 0xd6: SUI(state);          break;
     case 0xd7: break;
 
     case 0xd8: break;
