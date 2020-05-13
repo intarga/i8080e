@@ -540,6 +540,14 @@ void ANI(system_state *state) {
     state->pc++;
 }
 
+void XRI(system_state *state) {
+    state->regs[A] = state->regs[A] ^ state->memory[state->pc + 1];
+
+    state->cc.cy = 0;
+    set_zsp(state, state->regs[A]);
+
+    state->pc++;
+}
 // -- Direct addressing instructions --
 
 void STA(system_state *state) {
@@ -1054,9 +1062,9 @@ int emulate_op(system_state *state) {
     case 0xe9: PCHL(state);         break;
     case 0xea: JPE(state);          break;
     case 0xeb: XCHG(state);         break;
-    case 0xec: break;
-    case 0xed: break;
-    case 0xee: break;
+    case 0xec: CPE(state);          break;
+    case 0xed: exit(1); // undocumented instruction!! break;
+    case 0xee: XRI(state);          break;
     case 0xef: break;
 
     case 0xf0: break;
