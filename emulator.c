@@ -412,6 +412,17 @@ void DCX(system_state *state, uint8_t reg) {
     }
 }
 
+void XTHL(system_state *state) {
+    uint8_t l_data = state->regs[L];
+    uint8_t h_data = state->regs[H];
+
+    state->regs[L] = state->memory[state->sp];
+    state->regs[H] = state->memory[state->sp + 1];
+
+    state->memory[state->sp] = l_data;
+    state->memory[state->sp + 1] = h_data;
+}
+
 // -- Immediate instructions --
 
 void LXI(system_state *state, uint8_t reg) {
@@ -1004,12 +1015,12 @@ int emulate_op(system_state *state) {
     case 0xdc: CC(state);           break;
     case 0xdd: exit(1); // undocumented instruction!! break;
     case 0xde: SBI(state);          break;
-    case 0xdf: break;
+    case 0xdf: RST(state, 3);       break;
 
-    case 0xe0: break;
-    case 0xe1: break;
-    case 0xe2: break;
-    case 0xe3: break;
+    case 0xe0: RPO(state);          break;
+    case 0xe1: POP(state, H);       break;
+    case 0xe2: JPO(state);          break;
+    case 0xe3: XTHL(state);         break;
     case 0xe4: break;
     case 0xe5: break;
     case 0xe6: break;
