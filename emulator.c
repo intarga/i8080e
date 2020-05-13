@@ -499,6 +499,8 @@ void SUI(system_state *state) {
     state->regs[A] = res & 0xff;
 
     set_zsp(state, state->regs[A]);
+
+    state->pc++;
 }
 
 void SBI(system_state *state) {
@@ -514,6 +516,8 @@ void SBI(system_state *state) {
     state->regs[A] = res & 0xff;
 
     set_zsp(state, state->regs[A]);
+
+    state->pc++;
 }
 
 void ANI(system_state *state) {
@@ -521,6 +525,8 @@ void ANI(system_state *state) {
 
     state->cc.cy = 0;
     set_zsp(state, state->regs[A]);
+
+    state->pc++;
 }
 
 // -- Direct addressing instructions --
