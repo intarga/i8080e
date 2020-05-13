@@ -548,6 +548,16 @@ void XRI(system_state *state) {
 
     state->pc++;
 }
+
+void ORI(system_state *state) {
+    state->regs[A] = state->regs[A] | state->memory[state->pc + 1];
+
+    state->cc.cy = 0;
+    set_zsp(state, state->regs[A]);
+
+    state->pc++;
+}
+
 // -- Direct addressing instructions --
 
 void STA(system_state *state) {
@@ -1081,9 +1091,9 @@ int emulate_op(system_state *state) {
     case 0xf1: POP(state, PSW);     break;
     case 0xf2: JP(state);           break;
     case 0xf3: DI(state);           break;
-    case 0xf4: break;
-    case 0xf5: break;
-    case 0xf6: break;
+    case 0xf4: CP(state);           break;
+    case 0xf5: PUSH(state, PSW);    break;
+    case 0xf6: ORI(state);          break;
     case 0xf7: break;
 
     case 0xf8: break;
