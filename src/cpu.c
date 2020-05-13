@@ -581,13 +581,11 @@ void LHLD(system_state *state) {
 // -- Jump instructions --
 
 void PCHL(system_state *state) {
-    state->pc = get_m_address(state, H, L);
-    //decrement pc???
+    state->pc = get_m_address(state, H, L) - 1;
 }
 
 void JMP(system_state *state) {
-    state->pc = get_immediate_address(state);
-    //decrement pc???
+    state->pc = get_immediate_address(state) - 1;
 }
 
 void JC(system_state *state) {
