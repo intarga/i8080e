@@ -434,6 +434,10 @@ void XTHL(system_state *state) {
     state->memory[state->sp + 1] = h_data;
 }
 
+void SPHL(system_state *state) {
+    state->sp = (state->regs[H] << 8) | state->regs[L];
+}
+
 // -- Immediate instructions --
 
 void LXI(system_state *state, uint8_t reg) {
