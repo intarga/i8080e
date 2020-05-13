@@ -293,7 +293,7 @@ void CMP(system_state *state, uint8_t reg) {
     }
 
     // might be wrong... data book didn't specify the behaviour
-    state->cc.ac = (((state->regs[A] & 0x0f) + (cmp2 & 0x0f) + 1) & 0xf0) != 0;
+    state->cc.ac = (((cmp1 & 0x0f) + (cmp2 & 0x0f) + 1) & 0xf0) != 0;
 
     uint16_t res = cmp1 + cmp2 + 1;
 
@@ -558,6 +558,22 @@ void ORI(system_state *state) {
 
     state->cc.cy = 0;
     set_zsp(state, state->regs[A]);
+
+    state->pc++;
+}
+
+void CPI(system_state *state) {
+    uint8_t cmp1 = state->regs[A];
+    uint8_t cmp2 = ~state->memory[state->pc + 1];
+
+    // might be wrong... data book didn't specify the behaviour
+    state->cc.ac = (((cmp1 & 0x0f) + (cmp2 & 0x0f) + 1) & 0xf0) != 0;
+
+    uint16_t res = cmp1 + cmp2 + 1;
+
+    state->cc.cy = (res & 0x0f00) == 0;
+
+    set_zsp(state, res & 0xff);
 
     state->pc++;
 }
@@ -1098,16 +1114,16 @@ int emulate_op(system_state *state) {
     case 0xf4: CP(state);           break;
     case 0xf5: PUSH(state, PSW);    break;
     case 0xf6: ORI(state);          break;
-    case 0xf7: break;
+    case 0xf7: RST(state, 6);       break;
 
-    case 0xf8: break;
-    case 0xf9: break;
-    case 0xfa: break;
-    case 0xfb: break;
-    case 0xfc: break;
-    case 0xfd: break;
-    case 0xfe: break;
-    case 0xff: break;
+    case 0xf8: RM(state);           break;
+    case 0xf9: SPHL(state);         break;
+    case 0xfa: JM(state);           break;
+    case 0xfb: EI(state);           break;
+    case 0xfc: CM(state);           break;
+    case 0xfd: exit(1); // undocumented instruction!! break;
+    case 0xfe: CPI(state);          break;
+    case 0xff: RST(state, 7);       break;
     }
 
     state->pc++;
