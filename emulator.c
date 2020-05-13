@@ -490,6 +490,21 @@ void SUI(system_state *state) {
     set_zsp(state, state->regs[A]);
 }
 
+void SBI(system_state *state) {
+    uint8_t sub1 = state->regs[A];
+    uint8_t sub2 = ~(state->memory[state->pc + 1] + state->cc.cy);
+
+    state->cc.ac = (((sub1 & 0x0f) + (sub2 & 0x0f) + 1) & 0xf0) != 0;
+
+    uint16_t res = sub1 + sub2 + 1;
+
+    state->cc.cy = (res & 0x0f00) == 0;
+
+    state->regs[A] = res & 0xff;
+
+    set_zsp(state, state->regs[A]);
+}
+
 // -- Direct addressing instructions --
 
 void STA(system_state *state) {
@@ -980,15 +995,15 @@ int emulate_op(system_state *state) {
     case 0xd4: CNC(state);          break;
     case 0xd5: PUSH(state, D);      break;
     case 0xd6: SUI(state);          break;
-    case 0xd7: break;
+    case 0xd7: RST(state, 2);       break;
 
-    case 0xd8: break;
-    case 0xd9: break;
-    case 0xda: break;
-    case 0xdb: break;
-    case 0xdc: break;
-    case 0xdd: break;
-    case 0xde: break;
+    case 0xd8: RC(state);           break;
+    case 0xd9: exit(1); // undocumented instruction!! break;
+    case 0xda: JC(state);           break;
+    case 0xdb: IN(state);           break;
+    case 0xdc: CC(state);           break;
+    case 0xdd: exit(1); // undocumented instruction!! break;
+    case 0xde: SBI(state);          break;
     case 0xdf: break;
 
     case 0xe0: break;
