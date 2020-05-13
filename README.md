@@ -1,17 +1,19 @@
 # 8080-emulator
 A simple emulator for the Intel 8080. It's only tested for the space invaders arcade ROM, because that's the only software I have for it.
 
+This is a work in progress. CPU emulation is almost complete, but I/O remains to be implemented.
+
 ## Building and running
 
 ### Supported systems
 
-Only Linux??
+Only tested with x86_64 Linux, but probably anything with a C compiler and SDL backend will work fine.
 
 ### Dependencies
 
 - gcc <version>
 
-- OpenGL?? <version>
+- SDL 2 <version>
 
 ### Building
 
