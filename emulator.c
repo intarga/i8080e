@@ -516,6 +516,13 @@ void SBI(system_state *state) {
     set_zsp(state, state->regs[A]);
 }
 
+void ANI(system_state *state) {
+    state->regs[A] = state->regs[A] & state->memory[state->pc + 1];
+
+    state->cc.cy = 0;
+    set_zsp(state, state->regs[A]);
+}
+
 // -- Direct addressing instructions --
 
 void STA(system_state *state) {
@@ -1021,9 +1028,9 @@ int emulate_op(system_state *state) {
     case 0xe1: POP(state, H);       break;
     case 0xe2: JPO(state);          break;
     case 0xe3: XTHL(state);         break;
-    case 0xe4: break;
-    case 0xe5: break;
-    case 0xe6: break;
+    case 0xe4: CPO(state);          break;
+    case 0xe5: PUSH(state, H);      break;
+    case 0xe6: ANI(state);          break;
     case 0xe7: break;
 
     case 0xe8: break;
