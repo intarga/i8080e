@@ -1,40 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-
-// -- Register names --
-
-#define A 0 // accumulator
-#define B 1
-#define C 2
-#define D 3
-#define E 4
-#define H 5
-#define L 6
-#define SP 7 // stack pointer
-#define M 8 // memory reference
-#define PSW 9
-
-// -- System state --
-
-typedef struct condition_codes {
-    uint8_t z;
-    uint8_t s;
-    uint8_t p;
-    uint8_t cy;
-    uint8_t ac;
-    //uint8_t pad;
-} condition_codes;
-
-typedef struct system_state {
-    uint8_t regs[7]; // registers
-    uint16_t sp; // stack pointer
-    uint16_t pc; //program counter
-    uint8_t *memory;
-    condition_codes cc;
-    uint8_t int_enable;
-} system_state;
+#include <unistd.h>
+#include "cpu.h"
+#include "disassembler.h"
 
 // -- Helper functions --
 
@@ -828,6 +796,9 @@ void OUT(system_state *state) {
 // -- HLT --
 
 void HLT(system_state *state) {
+    if (state->int_enable) {
+        //TODO
+    }
     exit(0); //TODO implement interrupt response
 }
 
@@ -835,6 +806,8 @@ void HLT(system_state *state) {
 
 int emulate_op(system_state *state) {
     unsigned char op_code = state->memory[state->pc];
+
+    disassemble_op(state->memory, state->pc);
 
     switch (op_code) {
     case 0x00: break; // NOP
@@ -1126,37 +1099,15 @@ int emulate_op(system_state *state) {
     case 0xff: RST(state, 7);       break;
     }
 
+    printf("\tC=%d,P=%d,S=%d,Z=%d\n", state->cc.cy, state->cc.p,
+        state->cc.s, state->cc.z);
+    printf("\tA $%02x B $%02x C $%02x D $%02x E $%02x H $%02x L $%02x SP %04x\n",
+        state->regs[A], state->regs[B], state->regs[C], state->regs[D],
+        state->regs[E], state->regs[H], state->regs[L], state->sp);
+
     state->pc++;
 
-    return 0;
-}
-
-unsigned char *initalise_memory(char *rom_filename) {
-    FILE *f = fopen(rom_filename, "rb");
-    if (!f) {
-        printf("Could not open %s\n", rom_filename);
-        exit(1);
-    }
-
-    fseek(f, 0, SEEK_END);
-    int fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    unsigned char *memory = malloc(sizeof(unsigned char) * 16000);
-
-    fread(memory, 1, fsize, f);
-    fclose(f);
-
-    return memory;
-}
-
-int main() {
-    system_state state;
-    state.memory = initalise_memory("rom/invaders");
-
-    bool done = false;
-    while (!done)
-        done = emulate_op(&state);
+    sleep(1);
 
     return 0;
 }

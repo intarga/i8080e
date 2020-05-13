@@ -305,6 +305,7 @@ unsigned char *read_rom(char *filename, int *fsize) {
     return buffer;
 }
 
+/*
 int main() {
     int fsize = 0;
     unsigned char *buffer = read_rom("rom/invaders", &fsize);
@@ -314,4 +315,5 @@ int main() {
         pc += disassemble_op(buffer, pc);
     }
 }
+*/
 

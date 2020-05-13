@@ -1,21 +1,33 @@
-CC = gcc $(CFLAGS)
+TARGET = 8080-emulator
+
+CC = gcc
 CFLAGS = -Wall -Werror -Wextra
 
-all: 8080-emulator 8080-disassembler
+LINKER = gcc
+LFLAGS = -Wall -Werror -Wextra
+
+SRCDIR   = src
+OBJDIR   = obj
+BINDIR   = bin
+
+SOURCES  := $(wildcard $(SRCDIR)/*.c)
+INCLUDES := $(wildcard $(SRCDIR)/*.h)
+OBJECTS  := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+
+all: $(BINDIR)/$(TARGET)
 
 debug: CFLAGS += -O0 -g
 debug: all
 release: CFLAGS += -O3
 release: all
 
-8080-emulator: emulator.o
-	$(CC) $^ -o $@
+$(BINDIR)/$(TARGET): $(OBJECTS)
+	$(LINKER) $(OBJECTS) $(LFLAGS) -o $@
 
-emulator.o: emulator.c
-	$(CC) -c $<
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-8080-disassembler: disassembler.c
-	$(CC) $< -o $@
-
+.PHONY: clean
 clean:
-	rm *.o 8080-emulator 8080-disassembler
+	rm $(OBJECTS)
+	rm $(BINDIR)/$(TARGET)

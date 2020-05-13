@@ -1,13 +1,13 @@
 # object files
-*.o
+obj/*
 
 # copyrighted stuff
 rom/*
 docs/*
 
 # binaries
-8080-emulator
-8080-disassembler
+bin/*
 
 # random junk
 .ccls-cache/*
+todo
