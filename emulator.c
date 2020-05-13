@@ -412,6 +412,17 @@ void DCX(system_state *state, uint8_t reg) {
     }
 }
 
+void XCHG(system_state *state) {
+    uint8_t d_data = state->regs[D];
+    uint8_t e_data = state->regs[E];
+
+    state->regs[D] = state->regs[H];
+    state->regs[E] = state->regs[L];
+
+    state->regs[H] = d_data;
+    state->regs[L] = e_data;
+}
+
 void XTHL(system_state *state) {
     uint8_t l_data = state->regs[L];
     uint8_t h_data = state->regs[H];
@@ -1037,12 +1048,12 @@ int emulate_op(system_state *state) {
     case 0xe4: CPO(state);          break;
     case 0xe5: PUSH(state, H);      break;
     case 0xe6: ANI(state);          break;
-    case 0xe7: break;
+    case 0xe7: RST(state, 4);       break;
 
-    case 0xe8: break;
-    case 0xe9: break;
-    case 0xea: break;
-    case 0xeb: break;
+    case 0xe8: RPE(state);          break;
+    case 0xe9: PCHL(state);         break;
+    case 0xea: JPE(state);          break;
+    case 0xeb: XCHG(state);         break;
     case 0xec: break;
     case 0xed: break;
     case 0xee: break;
