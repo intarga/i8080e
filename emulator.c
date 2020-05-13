@@ -33,7 +33,7 @@ typedef struct system_state {
     uint16_t pc; //program counter
     uint8_t *memory;
     condition_codes cc;
-    //uint8_t int_enable;
+    uint8_t int_enable;
 } system_state;
 
 // -- Helper functions --
@@ -773,6 +773,16 @@ void RST(system_state *state, uint16_t offset) {
     //decrement pc?
 }
 
+// -- Interrupt flip-flop instructions --
+
+void EI(system_state *state) {
+    state->int_enable = 1;
+}
+
+void DI(system_state *state) {
+    state->int_enable = 0;
+}
+
 // -- Input/output instructions --
 
 void IN(system_state *state) {
@@ -1065,12 +1075,12 @@ int emulate_op(system_state *state) {
     case 0xec: CPE(state);          break;
     case 0xed: exit(1); // undocumented instruction!! break;
     case 0xee: XRI(state);          break;
-    case 0xef: break;
+    case 0xef: RST(state, 5);       break;
 
-    case 0xf0: break;
-    case 0xf1: break;
-    case 0xf2: break;
-    case 0xf3: break;
+    case 0xf0: RP(state);           break;
+    case 0xf1: POP(state, PSW);     break;
+    case 0xf2: JP(state);           break;
+    case 0xf3: DI(state);           break;
     case 0xf4: break;
     case 0xf5: break;
     case 0xf6: break;
