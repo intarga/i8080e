@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 #include "cpu.h"
 
 unsigned char *initalise_memory(char *rom_filename) {
@@ -15,6 +16,7 @@ unsigned char *initalise_memory(char *rom_filename) {
     fseek(f, 0, SEEK_SET);
 
     unsigned char *memory = malloc(sizeof(unsigned char) * 16000);
+    memset(memory, 0, 16000);
 
     fread(memory, 1, fsize, f);
     fclose(f);
@@ -24,7 +26,15 @@ unsigned char *initalise_memory(char *rom_filename) {
 
 int initalise_state(system_state *state, char *rom_filename) {
     state->pc = 0;
-    //TODO more
+    state->sp = 0;
+    state->int_enable = 0;
+    state->cc.ac = 0;
+    state->cc.cy = 0;
+    state->cc.z = 0;
+    state->cc.s = 0;
+    state->cc.p = 0;
+    for (int i = 0; i < 7; i++)
+        state->regs[i] = 0;
     state->memory = initalise_memory(rom_filename);
     return 0;
 }
