@@ -5,6 +5,10 @@ CFLAGS = -Wall -Werror -Wextra
 
 LINKER = gcc
 LFLAGS = -Wall -Werror -Wextra
+LFLAGS += `sdl2-config --libs` -lSDL2_mixer -lSDL2_image -lSDL2_ttf -lm
+
+#CXXFLAGS += `sdl2-config --cflags`
+#CXXFLAGS += -g -lefence
 
 SRCDIR   = src
 OBJDIR   = obj
@@ -14,6 +18,7 @@ SOURCES  := $(wildcard $(SRCDIR)/*.c)
 INCLUDES := $(wildcard $(SRCDIR)/*.h)
 OBJECTS  := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
+default: debug
 all: $(BINDIR)/$(TARGET)
 
 debug: CFLAGS += -O0 -g

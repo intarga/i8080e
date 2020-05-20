@@ -1,8 +1,19 @@
+#include <SDL2/SDL_rect.h>
+#include <SDL2/SDL_render.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <SDL2/SDL.h>
 #include "cpu.h"
+#include "display.h"
+#include "input.h"
+
+typedef struct {
+    Cpu_state *state;
+    Display *display;
+    Input *input;
+} Arcade_system;
 
 unsigned char *initalise_memory(char *rom_filename) {
     FILE *f = fopen(rom_filename, "rb");
@@ -24,7 +35,7 @@ unsigned char *initalise_memory(char *rom_filename) {
     return memory;
 }
 
-int initalise_state(system_state *state, char *rom_filename) {
+int initalise_state(Cpu_state *state, char *rom_filename) {
     state->pc = 0;
     state->sp = 0;
     state->int_enable = 0;
@@ -39,13 +50,46 @@ int initalise_state(system_state *state, char *rom_filename) {
     return 0;
 }
 
-int main() {
-    system_state state;
+Arcade_system initialise_system() {
+    Arcade_system system;
+
+    system.state = malloc(sizeof(Cpu_state));
+    /*
+    Cpu_state state;
     initalise_state(&state, "rom/invaders");
+    system.state = &state;
+    */
+
+    //system.display = Display display;
+    system.display = malloc(sizeof(Display));
+    //system.display = &(Display) {};
+
+    return system;
+}
+
+int main() {
+    Arcade_system system = initialise_system();
+    //memset(&cabinet, 0, sizeof(Cabinet));
+
+
+    initialise_SDL(system.display);
+
+    //atexit(cleanup);
 
     bool done = false;
-    while (!done)
-        done = emulate_op(&state);
+    while (!done) {
+        prepareScene(system.display, system.state->memory);
+
+        handleInput(system.input);
+
+        done = emulate_op(system.state);
+
+        presentScene(system.display);
+
+        SDL_Delay(16);
+    }
+
+    //TODO free structs
 
     return 0;
 }

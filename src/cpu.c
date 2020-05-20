@@ -15,33 +15,33 @@ uint8_t check_parity(uint8_t res, int bits) {
     return ((p & 0x1) == 0);
 }
 
-void set_zsp(system_state *state, uint8_t res) {
+void set_zsp(Cpu_state *state, uint8_t res) {
     state->cc.z = (res == 0x00);
     state->cc.s = ((res & 0x80) == 0x80);
     state->cc.p = check_parity(res, 8);
 }
 
-uint16_t get_m_address(system_state *state, uint8_t reg1, uint8_t reg2) {
+uint16_t get_m_address(Cpu_state *state, uint8_t reg1, uint8_t reg2) {
     return (state->regs[reg1] << 8) | state->regs[reg2];
 }
 
-uint16_t get_immediate_address(system_state *state) {
+uint16_t get_immediate_address(Cpu_state *state) {
      return (state->memory[state->pc + 2] << 8) | state->memory[state->pc + 1];
 }
 
 // -- Carry bit instructions --
 
-void STC(system_state *state) {
+void STC(Cpu_state *state) {
     state->cc.cy = 1;
 }
 
-void CMC(system_state *state) {
+void CMC(Cpu_state *state) {
     state->cc.cy = !state->cc.cy;
 }
 
 // -- Single register instructions --
 
-void INR(system_state *state, uint8_t reg) {
+void INR(Cpu_state *state, uint8_t reg) {
     uint8_t res;
 
     if (reg == M) {
@@ -55,7 +55,7 @@ void INR(system_state *state, uint8_t reg) {
     state->cc.ac = ((res & 0x0f) == 0x00);
 }
 
-void DCR(system_state *state, uint8_t reg) {
+void DCR(Cpu_state *state, uint8_t reg) {
     uint8_t res;
 
     if (reg == M) {
@@ -69,11 +69,11 @@ void DCR(system_state *state, uint8_t reg) {
     state->cc.ac = ((res & 0x0f) == 0x0f);
 }
 
-void CMA(system_state *state) {
+void CMA(Cpu_state *state) {
     state->regs[A] = ~state->regs[A];
 }
 
-void DAA(system_state *state) {
+void DAA(Cpu_state *state) {
     if (state->cc.ac || (state->regs[A] & 0x0f) > 9) {
         state->cc.ac = 1;
         state->regs[A] += 6;
@@ -87,7 +87,7 @@ void DAA(system_state *state) {
 
 // -- Data transfer instructions --
 
-void MOV(system_state *state, uint8_t reg1, uint8_t reg2) {
+void MOV(Cpu_state *state, uint8_t reg1, uint8_t reg2) {
     unsigned char byte;
     if (reg2 == M) {
         uint16_t address = get_m_address(state, H, L);
@@ -104,19 +104,19 @@ void MOV(system_state *state, uint8_t reg1, uint8_t reg2) {
     }
 }
 
-void STAX(system_state *state, uint8_t reg) {
+void STAX(Cpu_state *state, uint8_t reg) {
     uint16_t address = get_m_address(state, reg, reg + 1);
     state->memory[address] = state->regs[A];
 }
 
-void LDAX(system_state *state, uint8_t reg) {
+void LDAX(Cpu_state *state, uint8_t reg) {
     uint16_t address = get_m_address(state, reg, reg + 1);
     state->regs[A] = state->memory[address];
 }
 
 // -- Register or memory to accumulator instructions --
 
-void ADD(system_state *state, uint8_t reg) {
+void ADD(Cpu_state *state, uint8_t reg) {
     uint8_t add1 = state->regs[A];
     uint8_t add2;
 
@@ -138,7 +138,7 @@ void ADD(system_state *state, uint8_t reg) {
     set_zsp(state, state->regs[A]);
 }
 
-void ADC(system_state *state, uint8_t reg) {
+void ADC(Cpu_state *state, uint8_t reg) {
     uint8_t add1 = state->regs[A];
     uint8_t add2;
 
@@ -160,7 +160,7 @@ void ADC(system_state *state, uint8_t reg) {
     set_zsp(state, state->regs[A]);
 }
 
-void SUB(system_state *state, uint8_t reg) {
+void SUB(Cpu_state *state, uint8_t reg) {
     uint8_t sub1 = state->regs[A];
     uint8_t sub2;
 
@@ -182,7 +182,7 @@ void SUB(system_state *state, uint8_t reg) {
     set_zsp(state, state->regs[A]);
 }
 
-void SBB(system_state *state, uint8_t reg) {
+void SBB(Cpu_state *state, uint8_t reg) {
     uint8_t sub1 = state->regs[A];
     uint8_t sub2;
 
@@ -204,7 +204,7 @@ void SBB(system_state *state, uint8_t reg) {
     set_zsp(state, state->regs[A]);
 }
 
-void ANA(system_state *state, uint8_t reg) {
+void ANA(Cpu_state *state, uint8_t reg) {
     uint8_t and;
     if (reg == M) {
         uint16_t address = get_m_address(state, H, L);
@@ -219,7 +219,7 @@ void ANA(system_state *state, uint8_t reg) {
     set_zsp(state, state->regs[A]);
 }
 
-void XRA(system_state *state, uint8_t reg) {
+void XRA(Cpu_state *state, uint8_t reg) {
     uint8_t xor;
     if (reg == M) {
         uint16_t address = get_m_address(state, H, L);
@@ -234,7 +234,7 @@ void XRA(system_state *state, uint8_t reg) {
     set_zsp(state, state->regs[A]);
 }
 
-void ORA(system_state *state, uint8_t reg) {
+void ORA(Cpu_state *state, uint8_t reg) {
     uint8_t or;
     if (reg == M) {
         uint16_t address = get_m_address(state, H, L);
@@ -249,7 +249,7 @@ void ORA(system_state *state, uint8_t reg) {
     set_zsp(state, state->regs[A]);
 }
 
-void CMP(system_state *state, uint8_t reg) {
+void CMP(Cpu_state *state, uint8_t reg) {
     uint8_t cmp1 = state->regs[A];
     uint8_t cmp2;
 
@@ -272,7 +272,7 @@ void CMP(system_state *state, uint8_t reg) {
 
 // -- Rotate accumulator instructions --
 
-void RLC(system_state *state) {
+void RLC(Cpu_state *state) {
     state->cc.cy = (state->regs[A] & 0x80) != 0;
 
     state->regs[A] <<= 1;
@@ -280,7 +280,7 @@ void RLC(system_state *state) {
         state->regs[A]++;
 }
 
-void RRC(system_state *state) {
+void RRC(Cpu_state *state) {
     state->cc.cy = (state->regs[A] & 0x01) != 0;
 
     state->regs[A] >>= 1;
@@ -288,7 +288,7 @@ void RRC(system_state *state) {
         state->regs[A] += 0x80;
 }
 
-void RAL(system_state *state) {
+void RAL(Cpu_state *state) {
     uint8_t oldcy = state->cc.cy;
     state->cc.cy = (state->regs[A] & 0x80) != 0;
 
@@ -296,7 +296,7 @@ void RAL(system_state *state) {
     state->regs[A] += oldcy;
 }
 
-void RAR(system_state *state) {
+void RAR(Cpu_state *state) {
     uint8_t oldcy = state->cc.cy;
     state->cc.cy = (state->regs[A] & 0x01) != 0;
 
@@ -306,7 +306,7 @@ void RAR(system_state *state) {
 
 // -- Register pair instructions --
 
-void PUSH(system_state *state, uint8_t reg) {
+void PUSH(Cpu_state *state, uint8_t reg) {
     uint8_t byte1;
     uint8_t byte2;
     if (reg == PSW) {
@@ -328,7 +328,7 @@ void PUSH(system_state *state, uint8_t reg) {
     state->sp -= 2;
 }
 
-void POP(system_state *state, uint8_t reg) {
+void POP(Cpu_state *state, uint8_t reg) {
     uint8_t byte1 = state->memory[state->sp + 1];
     uint8_t byte2 = state->memory[state->sp];
 
@@ -350,7 +350,7 @@ void POP(system_state *state, uint8_t reg) {
     state->sp += 2;
 }
 
-void DAD(system_state *state, uint8_t reg) {
+void DAD(Cpu_state *state, uint8_t reg) {
     uint16_t add1 = (state->regs[reg] << 8) | state->regs[reg + 1];
     uint16_t add2 = (state->regs[H] << 8) | state->regs[L];
 
@@ -362,7 +362,7 @@ void DAD(system_state *state, uint8_t reg) {
     state->regs[reg + 1] = (sum & 0x000000ff);
 }
 
-void INX(system_state *state, uint8_t reg) {
+void INX(Cpu_state *state, uint8_t reg) {
     if (reg == SP) {
         state->sp++;
     } else {
@@ -371,7 +371,7 @@ void INX(system_state *state, uint8_t reg) {
     }
 }
 
-void DCX(system_state *state, uint8_t reg) {
+void DCX(Cpu_state *state, uint8_t reg) {
     if (reg == SP) {
         state->sp--;
     } else {
@@ -380,7 +380,7 @@ void DCX(system_state *state, uint8_t reg) {
     }
 }
 
-void XCHG(system_state *state) {
+void XCHG(Cpu_state *state) {
     uint8_t d_data = state->regs[D];
     uint8_t e_data = state->regs[E];
 
@@ -391,7 +391,7 @@ void XCHG(system_state *state) {
     state->regs[L] = e_data;
 }
 
-void XTHL(system_state *state) {
+void XTHL(Cpu_state *state) {
     uint8_t l_data = state->regs[L];
     uint8_t h_data = state->regs[H];
 
@@ -402,13 +402,13 @@ void XTHL(system_state *state) {
     state->memory[state->sp + 1] = h_data;
 }
 
-void SPHL(system_state *state) {
+void SPHL(Cpu_state *state) {
     state->sp = (state->regs[H] << 8) | state->regs[L];
 }
 
 // -- Immediate instructions --
 
-void LXI(system_state *state, uint8_t reg) {
+void LXI(Cpu_state *state, uint8_t reg) {
     unsigned char byte1 = state->memory[state->pc + 1];
     unsigned char byte2 = state->memory[state->pc + 2];
 
@@ -422,7 +422,7 @@ void LXI(system_state *state, uint8_t reg) {
     state->pc += 2;
 }
 
-void MVI(system_state *state, uint8_t reg) {
+void MVI(Cpu_state *state, uint8_t reg) {
     unsigned char byte = state->memory[state->pc + 1];
 
     if (reg == M) {
@@ -435,7 +435,7 @@ void MVI(system_state *state, uint8_t reg) {
     state->pc++;
 }
 
-void ADI(system_state *state) {
+void ADI(Cpu_state *state) {
     uint8_t add1 = state->regs[A];
     uint8_t add2 = state->memory[state->pc + 1];
 
@@ -452,7 +452,7 @@ void ADI(system_state *state) {
     state->pc++;
 }
 
-void ACI(system_state *state) {
+void ACI(Cpu_state *state) {
     uint8_t add1 = state->regs[A];
     uint8_t add2 = state->memory[state->pc + 1];
 
@@ -469,7 +469,7 @@ void ACI(system_state *state) {
     state->pc++;
 }
 
-void SUI(system_state *state) {
+void SUI(Cpu_state *state) {
     uint8_t sub1 = state->regs[A];
     uint8_t sub2 = ~state->memory[state->pc + 1];
 
@@ -486,7 +486,7 @@ void SUI(system_state *state) {
     state->pc++;
 }
 
-void SBI(system_state *state) {
+void SBI(Cpu_state *state) {
     uint8_t sub1 = state->regs[A];
     uint8_t sub2 = ~(state->memory[state->pc + 1] + state->cc.cy);
 
@@ -503,7 +503,7 @@ void SBI(system_state *state) {
     state->pc++;
 }
 
-void ANI(system_state *state) {
+void ANI(Cpu_state *state) {
     state->regs[A] = state->regs[A] & state->memory[state->pc + 1];
 
     state->cc.cy = 0;
@@ -512,7 +512,7 @@ void ANI(system_state *state) {
     state->pc++;
 }
 
-void XRI(system_state *state) {
+void XRI(Cpu_state *state) {
     state->regs[A] = state->regs[A] ^ state->memory[state->pc + 1];
 
     state->cc.cy = 0;
@@ -521,7 +521,7 @@ void XRI(system_state *state) {
     state->pc++;
 }
 
-void ORI(system_state *state) {
+void ORI(Cpu_state *state) {
     state->regs[A] = state->regs[A] | state->memory[state->pc + 1];
 
     state->cc.cy = 0;
@@ -530,7 +530,7 @@ void ORI(system_state *state) {
     state->pc++;
 }
 
-void CPI(system_state *state) {
+void CPI(Cpu_state *state) {
     uint8_t cmp1 = state->regs[A];
     uint8_t cmp2 = ~state->memory[state->pc + 1];
 
@@ -548,21 +548,21 @@ void CPI(system_state *state) {
 
 // -- Direct addressing instructions --
 
-void STA(system_state *state) {
+void STA(Cpu_state *state) {
     uint16_t address = get_immediate_address(state);
     state->memory[address] = state->regs[A];
 
     state->pc += 2;
 }
 
-void LDA(system_state *state) {
+void LDA(Cpu_state *state) {
     uint16_t address = get_immediate_address(state);
     state->regs[A] = state->memory[address];
 
     state->pc += 2;
 }
 
-void SHLD(system_state *state) {
+void SHLD(Cpu_state *state) {
     uint16_t address = get_immediate_address(state);
     state->memory[address] = state->regs[L];
     state->memory[address + 1] = state->regs[H];
@@ -570,7 +570,7 @@ void SHLD(system_state *state) {
     state->pc += 2;
 }
 
-void LHLD(system_state *state) {
+void LHLD(Cpu_state *state) {
     uint16_t address = get_immediate_address(state);
     state->regs[L] = state->memory[address];
     state->regs[H] = state->memory[address + 1];
@@ -580,63 +580,63 @@ void LHLD(system_state *state) {
 
 // -- Jump instructions --
 
-void PCHL(system_state *state) {
+void PCHL(Cpu_state *state) {
     state->pc = get_m_address(state, H, L) - 1;
 }
 
-void JMP(system_state *state) {
+void JMP(Cpu_state *state) {
     state->pc = get_immediate_address(state) - 1;
 }
 
-void JC(system_state *state) {
+void JC(Cpu_state *state) {
     if (state->cc.cy)
         JMP(state);
     else
         state->pc += 2;
 }
 
-void JNC(system_state *state) {
+void JNC(Cpu_state *state) {
     if (!state->cc.cy)
         JMP(state);
     else
         state->pc += 2;
 }
 
-void JZ(system_state *state) {
+void JZ(Cpu_state *state) {
     if (state->cc.z)
         JMP(state);
     else
         state->pc += 2;
 }
 
-void JNZ(system_state *state) {
+void JNZ(Cpu_state *state) {
     if (!state->cc.z)
         JMP(state);
     else
         state->pc += 2;
 }
 
-void JM(system_state *state) {
+void JM(Cpu_state *state) {
     if (state->cc.s)
         JMP(state);
     else
         state->pc += 2;
 }
 
-void JP(system_state *state) {
+void JP(Cpu_state *state) {
     if (!state->cc.s)
         JMP(state);
     else
         state->pc += 2;
 }
-void JPE(system_state *state) {
+void JPE(Cpu_state *state) {
     if (state->cc.p)
         JMP(state);
     else
         state->pc += 2;
 }
 
-void JPO(system_state *state) {
+void JPO(Cpu_state *state) {
     if (!state->cc.p)
         JMP(state);
     else
@@ -645,7 +645,7 @@ void JPO(system_state *state) {
 
 // -- Call subroutine instructions --
 
-void CALL(system_state *state) {
+void CALL(Cpu_state *state) {
     uint16_t return_addr = state->pc + 2;
     state->memory[state->sp - 1] = return_addr >> 8;
     state->memory[state->sp - 2] = return_addr & 0xff;
@@ -654,56 +654,56 @@ void CALL(system_state *state) {
     JMP(state);
 }
 
-void CC(system_state *state) {
+void CC(Cpu_state *state) {
     if (state->cc.cy)
         CALL(state);
     else
         state->pc += 2;
 }
 
-void CNC(system_state *state) {
+void CNC(Cpu_state *state) {
     if (!state->cc.cy)
         CALL(state);
     else
         state->pc += 2;
 }
 
-void CZ(system_state *state) {
+void CZ(Cpu_state *state) {
     if (state->cc.z)
         CALL(state);
     else
         state->pc += 2;
 }
 
-void CNZ(system_state *state) {
+void CNZ(Cpu_state *state) {
     if (!state->cc.z)
         CALL(state);
     else
         state->pc += 2;
 }
 
-void CM(system_state *state) {
+void CM(Cpu_state *state) {
     if (state->cc.s)
         CALL(state);
     else
         state->pc += 2;
 }
 
-void CP(system_state *state) {
+void CP(Cpu_state *state) {
     if (!state->cc.s)
         CALL(state);
     else
         state->pc += 2;
 }
 
-void CPE(system_state *state) {
+void CPE(Cpu_state *state) {
     if (state->cc.p)
         CALL(state);
     else
         state->pc += 2;
 }
 
-void CPO(system_state *state) {
+void CPO(Cpu_state *state) {
     if (!state->cc.p)
         CALL(state);
     else
@@ -712,54 +712,54 @@ void CPO(system_state *state) {
 
 // -- Return from subroutine instructions --
 
-void RET(system_state *state) {
+void RET(Cpu_state *state) {
     state->pc = state->memory[state->sp] | (state->memory[state->sp+1] << 8);
     state->sp += 2;
 }
 
-void RC(system_state *state) {
+void RC(Cpu_state *state) {
     if (state->cc.cy)
         RET(state);
 }
 
-void RNC(system_state *state) {
+void RNC(Cpu_state *state) {
     if (!state->cc.cy)
         RET(state);
 }
 
-void RZ(system_state *state) {
+void RZ(Cpu_state *state) {
     if (state->cc.z)
         RET(state);
 }
 
-void RNZ(system_state *state) {
+void RNZ(Cpu_state *state) {
     if (!state->cc.z)
         RET(state);
 }
 
-void RM(system_state *state) {
+void RM(Cpu_state *state) {
     if (state->cc.s)
         RET(state);
 }
 
-void RP(system_state *state) {
+void RP(Cpu_state *state) {
     if (!state->cc.s)
         RET(state);
 }
 
-void RPE(system_state *state) {
+void RPE(Cpu_state *state) {
     if (state->cc.p)
         RET(state);
 }
 
-void RPO(system_state *state) {
+void RPO(Cpu_state *state) {
     if (!state->cc.p)
         RET(state);
 }
 
 // -- RST --
 
-void RST(system_state *state, uint16_t offset) {
+void RST(Cpu_state *state, uint16_t offset) {
     uint16_t return_addr = state->pc + 2;
     state->memory[state->sp - 1] = return_addr >> 8;
     state->memory[state->sp - 2] = return_addr & 0xff;
@@ -771,29 +771,29 @@ void RST(system_state *state, uint16_t offset) {
 
 // -- Interrupt flip-flop instructions --
 
-void EI(system_state *state) {
+void EI(Cpu_state *state) {
     state->int_enable = 1;
 }
 
-void DI(system_state *state) {
+void DI(Cpu_state *state) {
     state->int_enable = 0;
 }
 
 // -- Input/output instructions --
 
-void IN(system_state *state) {
+void IN(Cpu_state *state) {
     //TODO
     state->pc++;
 }
 
-void OUT(system_state *state) {
+void OUT(Cpu_state *state) {
     //TODO
     state->pc++;
 }
 
 // -- HLT --
 
-void HLT(system_state *state) {
+void HLT(Cpu_state *state) {
     if (state->int_enable) {
         //TODO
     }
@@ -802,10 +802,10 @@ void HLT(system_state *state) {
 
 // -- The emulation nation --
 
-int emulate_op(system_state *state) {
+int emulate_op(Cpu_state *state) {
     unsigned char op_code = state->memory[state->pc];
 
-    disassemble_op(state->memory, state->pc);
+    //disassemble_op(state->memory, state->pc);
 
     switch (op_code) {
     case 0x00: break; // NOP
@@ -1097,15 +1097,17 @@ int emulate_op(system_state *state) {
     case 0xff: RST(state, 7);       break;
     }
 
+    /*
     printf("\tC=%d,P=%d,S=%d,Z=%d\n", state->cc.cy, state->cc.p,
         state->cc.s, state->cc.z);
     printf("\tA $%02x B $%02x C $%02x D $%02x E $%02x H $%02x L $%02x SP %04x\n",
         state->regs[A], state->regs[B], state->regs[C], state->regs[D],
         state->regs[E], state->regs[H], state->regs[L], state->sp);
+        */
 
     state->pc++;
 
-    sleep(1);
+    //sleep(1);
 
     return 0;
 }

@@ -15,25 +15,25 @@
 
 // -- System state --
 
-typedef struct condition_codes {
+typedef struct {
     uint8_t z;
     uint8_t s;
     uint8_t p;
     uint8_t cy;
     uint8_t ac;
     //uint8_t pad;
-} condition_codes;
+} Condition_codes;
 
-typedef struct system_state {
+typedef struct {
     uint8_t regs[7]; // registers
     uint16_t sp; // stack pointer
     uint16_t pc; //program counter
     uint8_t *memory;
-    condition_codes cc;
+    Condition_codes cc;
     uint8_t int_enable;
-} system_state;
+} Cpu_state;
 
 // -- Exported functions
 
-int emulate_op(system_state *state);
+int emulate_op(Cpu_state *state);
 
