@@ -351,15 +351,24 @@ void POP(Cpu_state *state, uint8_t reg) {
 }
 
 void DAD(Cpu_state *state, uint8_t reg) {
-    uint16_t add1 = (state->regs[reg] << 8) | state->regs[reg + 1];
+    uint16_t add1;
+    if (reg == SP) {
+        add1 = state->sp;
+    } else {
+        add1 = (state->regs[reg] << 8) | state->regs[reg + 1];
+    }
     uint16_t add2 = (state->regs[H] << 8) | state->regs[L];
 
     uint32_t sum = add1 + add2;
 
     state->cc.cy = ((sum & 0x00010000) != 0);
 
-    state->regs[reg] = ((sum >> 8) & 0x000000ff);
-    state->regs[reg + 1] = (sum & 0x000000ff);
+    if(reg == SP) {
+        state->sp = sum & 0xff;
+    } else {
+        state->regs[reg] = ((sum >> 8) & 0x000000ff);
+        state->regs[reg + 1] = (sum & 0x000000ff);
+    }
 }
 
 void INX(Cpu_state *state, uint8_t reg) {
