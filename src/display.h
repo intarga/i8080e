@@ -6,6 +6,8 @@
 typedef struct {
     SDL_Renderer *renderer;
     SDL_Window *window;
+    uint8_t pixels[SCREEN_HEIGHT][SCREEN_WIDTH][4];
+    SDL_Texture *texture;
 } Display;
 
 void initialise_SDL(Display *display);
