@@ -366,8 +366,8 @@ void DAD(Cpu_state *state, uint8_t reg) {
     if(reg == SP) {
         state->sp = sum & 0xff;
     } else {
-        state->regs[reg] = ((sum >> 8) & 0x000000ff);
-        state->regs[reg + 1] = (sum & 0x000000ff);
+        state->regs[H] = ((sum >> 8) & 0x000000ff);
+        state->regs[L] = (sum & 0x000000ff);
     }
 }
 
