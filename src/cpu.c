@@ -1112,7 +1112,7 @@ int emulate_op(Cpu_state *state) {
     printf("\tA $%02x B $%02x C $%02x D $%02x E $%02x H $%02x L $%02x SP %04x\n",
         state->regs[A], state->regs[B], state->regs[C], state->regs[D],
         state->regs[E], state->regs[H], state->regs[L], state->sp);
-        */
+    //    */
 
     state->pc++;
 

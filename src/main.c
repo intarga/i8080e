@@ -54,6 +54,7 @@ Arcade_system initialise_system() {
     Arcade_system system;
 
     system.state = malloc(sizeof(Cpu_state));
+    initalise_state(system.state, "rom/invaders");
     /*
     Cpu_state state;
     initalise_state(&state, "rom/invaders");

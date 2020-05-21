@@ -14,11 +14,16 @@ void initialise_SDL(Display *display) {
             "Invaders",
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
-            SCREEN_WIDTH, SCREEN_HEIGHT,
+            SCREEN_WIDTH,
+            SCREEN_HEIGHT,
             windowFlags);
 
     if (!display->window) {
-        printf("Failed to open %d x %d window: %s\n", SCREEN_WIDTH, SCREEN_HEIGHT, SDL_GetError());
+        printf(
+                "Failed to open %d x %d window: %s\n",
+                SCREEN_WIDTH,
+                SCREEN_HEIGHT,
+                SDL_GetError());
         exit(1);
     }
 
@@ -75,6 +80,7 @@ void prepareScene(Display *display, u_int8_t *memory) {
             &display->pixels,
             sizeof(uint8_t) * 4 * SCREEN_WIDTH);
 
+    SDL_RenderClear(display->renderer);
     SDL_RenderCopy(display->renderer, display->texture, NULL, NULL);
 }
 
