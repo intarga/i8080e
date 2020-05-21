@@ -654,12 +654,36 @@ void JPO(Cpu_state *state) {
 // -- Call subroutine instructions --
 
 void CALL(Cpu_state *state) {
+#if CPUDIAG //Required to implement CP/M printing for CPUDIAG
+    if (5 == get_immediate_address(state)) {
+        if (state->regs[C] == 9) {
+            uint16_t offset = (state->regs[D]<<8) | (state->regs[E]);
+            unsigned char *str = &state->memory[offset+3];
+
+            while (*str != '$')
+                printf("%c", *str++);
+
+            printf("\n");
+        }
+    }
+    else if (0 == get_immediate_address(state)) {
+        exit(0);
+    } else {
+        uint16_t return_addr = state->pc + 2;
+        state->memory[state->sp - 1] = return_addr >> 8;
+        state->memory[state->sp - 2] = return_addr & 0xff;
+        state->sp -= 2;
+
+        JMP(state);
+    }
+#else
     uint16_t return_addr = state->pc + 2;
     state->memory[state->sp - 1] = return_addr >> 8;
     state->memory[state->sp - 2] = return_addr & 0xff;
     state->sp -= 2;
 
     JMP(state);
+#endif
 }
 
 void CC(Cpu_state *state) {
@@ -1106,16 +1130,14 @@ int emulate_op(Cpu_state *state) {
     }
 
     /*
-    printf("\tC=%d,P=%d,S=%d,Z=%d\n", state->cc.cy, state->cc.p,
-        state->cc.s, state->cc.z);
+    printf("\tC=%d,P=%d,S=%d,Z=%d,AC=%d\n", state->cc.cy, state->cc.p,
+            state->cc.s, state->cc.z, state->cc.ac);
     printf("\tA $%02x B $%02x C $%02x D $%02x E $%02x H $%02x L $%02x SP %04x\n",
-        state->regs[A], state->regs[B], state->regs[C], state->regs[D],
-        state->regs[E], state->regs[H], state->regs[L], state->sp);
+            state->regs[A], state->regs[B], state->regs[C], state->regs[D],
+            state->regs[E], state->regs[H], state->regs[L], state->sp);
     //    */
 
     state->pc++;
-
-    //sleep(1);
 
     return 0;
 }

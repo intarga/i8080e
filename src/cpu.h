@@ -1,5 +1,7 @@
 #include<stdint.h>
 
+#define CPUDIAG 0
+
 // -- Register names --
 
 #define A 0 // accumulator

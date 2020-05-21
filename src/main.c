@@ -29,7 +29,11 @@ unsigned char *initalise_memory(char *rom_filename) {
     unsigned char *memory = malloc(sizeof(unsigned char) * 16000);
     memset(memory, 0, 16000);
 
+#if CPUDIAG //TODO implement without #if
+    fread(&memory[0x100], 1, fsize, f);
+#else
     fread(memory, 1, fsize, f);
+#endif
     fclose(f);
 
     return memory;
@@ -69,6 +73,18 @@ Arcade_system initialise_system() {
 }
 
 int main() {
+#if CPUDIAG
+    Cpu_state state;
+    initalise_state(&state, "rom/cpudiag.bin");
+
+    state.memory[0]=0xc3;
+    state.memory[1]=0x00;
+    state.memory[2]=0x01;
+    state.memory[368] = 0x7;
+
+    while (true)
+        emulate_op(&state);
+#else
     Arcade_system system = initialise_system();
     //memset(&cabinet, 0, sizeof(Cabinet));
 
@@ -91,6 +107,7 @@ int main() {
     }
 
     //TODO free structs
+#endif
 
     return 0;
 }
