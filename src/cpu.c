@@ -9,7 +9,7 @@
 uint8_t check_parity(uint8_t res, int bits) {
     int p = 0;
     for (int i = 0; i < bits; i++) {
-        if ((res >>= 1) & 0x1)
+        if ((res >> i) & 0x01)
             p++;
     }
     return ((p & 0x1) == 0);
