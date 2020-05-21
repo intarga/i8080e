@@ -261,7 +261,7 @@ void CMP(Cpu_state *state, uint8_t reg) {
     }
 
     // might be wrong... data book didn't specify the behaviour
-    state->cc.ac = (((cmp1 & 0x0f) + (cmp2 & 0x0f) + 1) & 0xf0) != 0;
+    state->cc.ac = (((cmp1 & 0x0f) + (cmp2 & 0x0f) + 1) & 0xf0) == 0;
 
     uint16_t res = cmp1 + cmp2 + 1;
 
@@ -544,7 +544,7 @@ void CPI(Cpu_state *state) {
     uint8_t cmp2 = ~state->memory[state->pc + 1];
 
     // might be wrong... data book didn't specify the behaviour
-    state->cc.ac = (((cmp1 & 0x0f) + (cmp2 & 0x0f) + 1) & 0xf0) != 0;
+    state->cc.ac = (((cmp1 & 0x0f) + (cmp2 & 0x0f) + 1) & 0xf0) == 0;
 
     uint16_t res = cmp1 + cmp2 + 1;
 
