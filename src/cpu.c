@@ -333,15 +333,14 @@ void POP(Cpu_state *state, uint8_t reg) {
     uint8_t byte2 = state->memory[state->sp];
 
     if (reg == PSW) {
-        //bytes might be reversed? it's right according to the manual, but
-        //seems reversed compared to PUSH???
-        state->cc.s = byte1 >> 7;
-        state->cc.z = (byte1 >> 6) & 1;
-        state->cc.ac = (byte1 >> 4) & 1;
-        state->cc.p = (byte1 >> 2) & 1;
-        state->cc.cy = byte1 & 1;
+        //bytes are reversed from what the data book says, but it seems right
+        state->cc.s = byte2 >> 7;
+        state->cc.z = (byte2 >> 6) & 1;
+        state->cc.ac = (byte2 >> 4) & 1;
+        state->cc.p = (byte2 >> 2) & 1;
+        state->cc.cy = byte2 & 1;
 
-        state->regs[A] = byte2;
+        state->regs[A] = byte1;
     } else {
         state->regs[reg] = byte1;
         state->regs[reg + 1] = byte2;
