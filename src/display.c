@@ -54,8 +54,8 @@ void prepareScene(Display *display, u_int8_t *memory) {
         uint8_t byte = memory[i + 0x2400];
 
         for(int bit = 0; bit < 8; bit++) {
-            int x = i / 0x20 + bit;
-            int y = i % 0x20;
+            int x = 255 - ((i * 8) % 256 + bit); //implicit rotation between
+            int y = i * 8 / 256; //buffer and texture
 
             uint8_t r = 0;
             uint8_t g = 0;
