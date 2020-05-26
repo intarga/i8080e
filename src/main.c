@@ -9,6 +9,9 @@
 #include "display.h"
 #include "input.h"
 
+#define FRAMERATE 60
+#define CYCLES_PER_FRAME 2000000 / FRAMERATE
+
 typedef struct {
     Cpu_state *state;
     Display *display;
@@ -95,17 +98,28 @@ int main() {
 
     bool done = false;
     int cyc = 0;
+    u_int32_t timer = 0;
     while (!done) {
-        prepareScene(system.display, system.state->memory);
+        if ((SDL_GetTicks() - timer) > (1000 / FRAMERATE)) {
+            timer = SDL_GetTicks();
 
-        handleInput(system.input);
+            handleInput(system.input);
 
-        for (int i = 0; i < 1000; i++)
-            cyc += emulate_op(system.state);
+            while (cyc < CYCLES_PER_FRAME / 2)
+                cyc += emulate_op(system.state);
 
-        presentScene(system.display);
+            //interrupt
 
-        //SDL_Delay(1);
+            while (cyc < CYCLES_PER_FRAME)
+                cyc += emulate_op(system.state);
+
+            //interrupt2
+
+            cyc = CYCLES_PER_FRAME - cyc;
+
+            prepareScene(system.display, system.state->memory);
+            presentScene(system.display);
+        }
     }
 
     //TODO free structs
