@@ -31,20 +31,25 @@ uint16_t get_immediate_address(Cpu_state *state) {
 
 // -- Carry bit instructions --
 
-void STC(Cpu_state *state) {
+int STC(Cpu_state *state) {
     state->cc.cy = 1;
+    return 4;
 }
 
-void CMC(Cpu_state *state) {
+int CMC(Cpu_state *state) {
     state->cc.cy = !state->cc.cy;
+    return 4;
 }
 
 // -- Single register instructions --
 
-void INR(Cpu_state *state, uint8_t reg) {
+int INR(Cpu_state *state, uint8_t reg) {
+    int cyc = 5;
     uint8_t res;
 
     if (reg == M) {
+        cyc = 10;
+
         uint16_t address = get_m_address(state, H, L);
         res = ++state->memory[address];
     } else {
@@ -53,12 +58,16 @@ void INR(Cpu_state *state, uint8_t reg) {
 
     set_zsp(state, res);
     state->cc.ac = ((res & 0x0f) == 0x00);
+    return cyc;
 }
 
-void DCR(Cpu_state *state, uint8_t reg) {
+int DCR(Cpu_state *state, uint8_t reg) {
+    int cyc = 5;
     uint8_t res;
 
     if (reg == M) {
+        cyc = 10;
+
         uint16_t address = get_m_address(state, H, L);
         res = --state->memory[address];
     } else {
@@ -67,13 +76,15 @@ void DCR(Cpu_state *state, uint8_t reg) {
 
     set_zsp(state, res);
     state->cc.ac = ((res & 0x0f) == 0x0f);
+    return cyc;
 }
 
-void CMA(Cpu_state *state) {
+int CMA(Cpu_state *state) {
     state->regs[A] = ~state->regs[A];
+    return 4;
 }
 
-void DAA(Cpu_state *state) {
+int DAA(Cpu_state *state) {
     if (state->cc.ac || (state->regs[A] & 0x0f) > 9) {
         state->cc.ac = 1;
         state->regs[A] += 6;
@@ -83,13 +94,19 @@ void DAA(Cpu_state *state) {
         state->cc.cy = 1;
         state->regs[A] = ((state->regs[A] & 0xf0) + (6 << 4)) + (state->regs[A] &0x0f);
     }
+
+    return 4;
 }
 
 // -- Data transfer instructions --
 
-void MOV(Cpu_state *state, uint8_t reg1, uint8_t reg2) {
+int MOV(Cpu_state *state, uint8_t reg1, uint8_t reg2) {
+    int cyc = 5;
     unsigned char byte;
+
     if (reg2 == M) {
+        cyc = 7;
+
         uint16_t address = get_m_address(state, H, L);
         byte = state->memory[address];
     } else {
@@ -97,30 +114,41 @@ void MOV(Cpu_state *state, uint8_t reg1, uint8_t reg2) {
     }
 
     if (reg1 == M) {
+        cyc = 7;
+
         uint16_t address = get_m_address(state, H, L);
         state->memory[address] = byte;
     } else {
         state->regs[reg1] = byte;
     }
+
+    return cyc;
 }
 
-void STAX(Cpu_state *state, uint8_t reg) {
+int STAX(Cpu_state *state, uint8_t reg) {
     uint16_t address = get_m_address(state, reg, reg + 1);
     state->memory[address] = state->regs[A];
+
+    return 7;
 }
 
-void LDAX(Cpu_state *state, uint8_t reg) {
+int LDAX(Cpu_state *state, uint8_t reg) {
     uint16_t address = get_m_address(state, reg, reg + 1);
     state->regs[A] = state->memory[address];
+
+    return 7;
 }
 
 // -- Register or memory to accumulator instructions --
 
-void ADD(Cpu_state *state, uint8_t reg) {
+int ADD(Cpu_state *state, uint8_t reg) {
+    int cyc = 4;
     uint8_t add1 = state->regs[A];
     uint8_t add2;
 
     if (reg == M) {
+        cyc = 7;
+
         uint16_t address = get_m_address(state, H, L);
         add2 = state->memory[address];
     } else {
@@ -136,13 +164,18 @@ void ADD(Cpu_state *state, uint8_t reg) {
     state->regs[A] = res & 0xff;
 
     set_zsp(state, state->regs[A]);
+
+    return cyc;
 }
 
-void ADC(Cpu_state *state, uint8_t reg) {
+int ADC(Cpu_state *state, uint8_t reg) {
+    int cyc = 4;
     uint8_t add1 = state->regs[A];
     uint8_t add2;
 
     if (reg == M) {
+        cyc = 7;
+
         uint16_t address = get_m_address(state, H, L);
         add2 = state->memory[address];
     } else {
@@ -158,13 +191,18 @@ void ADC(Cpu_state *state, uint8_t reg) {
     state->regs[A] = res & 0xff;
 
     set_zsp(state, state->regs[A]);
+
+    return cyc;
 }
 
-void SUB(Cpu_state *state, uint8_t reg) {
+int SUB(Cpu_state *state, uint8_t reg) {
+    int cyc = 4;
     uint8_t sub1 = state->regs[A];
     uint8_t sub2;
 
     if (reg == M) {
+        cyc = 7;
+
         uint16_t address = get_m_address(state, H, L);
         sub2 = ~state->memory[address];
     } else {
@@ -180,13 +218,18 @@ void SUB(Cpu_state *state, uint8_t reg) {
     state->regs[A] = res & 0xff;
 
     set_zsp(state, state->regs[A]);
+
+    return cyc;
 }
 
-void SBB(Cpu_state *state, uint8_t reg) {
+int SBB(Cpu_state *state, uint8_t reg) {
+    int cyc = 4;
     uint8_t sub1 = state->regs[A];
     uint8_t sub2;
 
     if (reg == M) {
+        cyc = 7;
+
         uint16_t address = get_m_address(state, H, L);
         sub2 = ~(state->memory[address] + 1);
     } else {
@@ -202,11 +245,16 @@ void SBB(Cpu_state *state, uint8_t reg) {
     state->regs[A] = res & 0xff;
 
     set_zsp(state, state->regs[A]);
+
+    return cyc;
 }
 
-void ANA(Cpu_state *state, uint8_t reg) {
+int ANA(Cpu_state *state, uint8_t reg) {
+    int cyc = 4;
     uint8_t and;
     if (reg == M) {
+        cyc = 7;
+
         uint16_t address = get_m_address(state, H, L);
         and = state->memory[address];
     } else {
@@ -217,11 +265,16 @@ void ANA(Cpu_state *state, uint8_t reg) {
 
     state->cc.cy = 0;
     set_zsp(state, state->regs[A]);
+
+    return cyc;
 }
 
-void XRA(Cpu_state *state, uint8_t reg) {
+int XRA(Cpu_state *state, uint8_t reg) {
+    int cyc = 4;
     uint8_t xor;
     if (reg == M) {
+        cyc = 7;
+
         uint16_t address = get_m_address(state, H, L);
         xor = state->memory[address];
     } else {
@@ -232,11 +285,15 @@ void XRA(Cpu_state *state, uint8_t reg) {
 
     state->cc.cy = 0;
     set_zsp(state, state->regs[A]);
+
+    return cyc;
 }
 
-void ORA(Cpu_state *state, uint8_t reg) {
+int ORA(Cpu_state *state, uint8_t reg) {
+    int cyc = 4;
     uint8_t or;
     if (reg == M) {
+        cyc = 7;
         uint16_t address = get_m_address(state, H, L);
         or = state->memory[address];
     } else {
@@ -247,13 +304,18 @@ void ORA(Cpu_state *state, uint8_t reg) {
 
     state->cc.cy = 0;
     set_zsp(state, state->regs[A]);
+
+    return cyc;
 }
 
-void CMP(Cpu_state *state, uint8_t reg) {
+int CMP(Cpu_state *state, uint8_t reg) {
+    int cyc = 4;
     uint8_t cmp1 = state->regs[A];
     uint8_t cmp2;
 
     if (reg == M) {
+        cyc = 7;
+
         uint16_t address = get_m_address(state, H, L);
         cmp2 = ~state->memory[address];
     } else {
@@ -268,45 +330,55 @@ void CMP(Cpu_state *state, uint8_t reg) {
     state->cc.cy = (res & 0x0f00) == 0;
 
     set_zsp(state, res & 0xff);
+
+    return cyc;
 }
 
 // -- Rotate accumulator instructions --
 
-void RLC(Cpu_state *state) {
+int RLC(Cpu_state *state) {
     state->cc.cy = (state->regs[A] & 0x80) != 0;
 
     state->regs[A] <<= 1;
     if (state->cc.cy)
         state->regs[A]++;
+
+    return 4;
 }
 
-void RRC(Cpu_state *state) {
+int RRC(Cpu_state *state) {
     state->cc.cy = (state->regs[A] & 0x01) != 0;
 
     state->regs[A] >>= 1;
     if (state->cc.cy)
         state->regs[A] += 0x80;
+
+    return 4;
 }
 
-void RAL(Cpu_state *state) {
+int RAL(Cpu_state *state) {
     uint8_t oldcy = state->cc.cy;
     state->cc.cy = (state->regs[A] & 0x80) != 0;
 
     state->regs[A] <<= 1;
     state->regs[A] += oldcy;
+
+    return 4;
 }
 
-void RAR(Cpu_state *state) {
+int RAR(Cpu_state *state) {
     uint8_t oldcy = state->cc.cy;
     state->cc.cy = (state->regs[A] & 0x01) != 0;
 
     state->regs[A] >>= 1;
     state->regs[A] += (oldcy * 0x80);
+
+    return 4;
 }
 
 // -- Register pair instructions --
 
-void PUSH(Cpu_state *state, uint8_t reg) {
+int PUSH(Cpu_state *state, uint8_t reg) {
     uint8_t byte1;
     uint8_t byte2;
     if (reg == PSW) {
@@ -326,9 +398,11 @@ void PUSH(Cpu_state *state, uint8_t reg) {
     state->memory[state->sp - 2] = byte2;
 
     state->sp -= 2;
+
+    return 11;
 }
 
-void POP(Cpu_state *state, uint8_t reg) {
+int POP(Cpu_state *state, uint8_t reg) {
     uint8_t byte1 = state->memory[state->sp + 1];
     uint8_t byte2 = state->memory[state->sp];
 
@@ -347,9 +421,11 @@ void POP(Cpu_state *state, uint8_t reg) {
     }
 
     state->sp += 2;
+
+    return 10;
 }
 
-void DAD(Cpu_state *state, uint8_t reg) {
+int DAD(Cpu_state *state, uint8_t reg) {
     uint16_t add1;
     if (reg == SP) {
         add1 = state->sp;
@@ -368,27 +444,33 @@ void DAD(Cpu_state *state, uint8_t reg) {
         state->regs[H] = ((sum >> 8) & 0x000000ff);
         state->regs[L] = (sum & 0x000000ff);
     }
+
+    return 10;
 }
 
-void INX(Cpu_state *state, uint8_t reg) {
+int INX(Cpu_state *state, uint8_t reg) {
     if (reg == SP) {
         state->sp++;
     } else {
         if (state->regs[reg + 1]++ == 0xff)
             state->regs[reg]++;
     }
+
+    return 5;
 }
 
-void DCX(Cpu_state *state, uint8_t reg) {
+int DCX(Cpu_state *state, uint8_t reg) {
     if (reg == SP) {
         state->sp--;
     } else {
         if (state->regs[reg + 1]-- == 0x00)
             state->regs[reg]--;
     }
+
+    return 5;
 }
 
-void XCHG(Cpu_state *state) {
+int XCHG(Cpu_state *state) {
     uint8_t d_data = state->regs[D];
     uint8_t e_data = state->regs[E];
 
@@ -397,9 +479,11 @@ void XCHG(Cpu_state *state) {
 
     state->regs[H] = d_data;
     state->regs[L] = e_data;
+
+    return 4;
 }
 
-void XTHL(Cpu_state *state) {
+int XTHL(Cpu_state *state) {
     uint8_t l_data = state->regs[L];
     uint8_t h_data = state->regs[H];
 
@@ -408,15 +492,18 @@ void XTHL(Cpu_state *state) {
 
     state->memory[state->sp] = l_data;
     state->memory[state->sp + 1] = h_data;
+
+    return 18;
 }
 
-void SPHL(Cpu_state *state) {
+int SPHL(Cpu_state *state) {
     state->sp = (state->regs[H] << 8) | state->regs[L];
+    return 5;
 }
 
 // -- Immediate instructions --
 
-void LXI(Cpu_state *state, uint8_t reg) {
+int LXI(Cpu_state *state, uint8_t reg) {
     unsigned char byte1 = state->memory[state->pc + 1];
     unsigned char byte2 = state->memory[state->pc + 2];
 
@@ -428,12 +515,17 @@ void LXI(Cpu_state *state, uint8_t reg) {
     }
 
     state->pc += 2;
+
+    return 10;
 }
 
-void MVI(Cpu_state *state, uint8_t reg) {
+int MVI(Cpu_state *state, uint8_t reg) {
+    int cyc = 7;
     unsigned char byte = state->memory[state->pc + 1];
 
     if (reg == M) {
+        cyc = 10;
+
         uint16_t address = get_m_address(state, H, L);
         state->memory[address] = byte;
     } else {
@@ -441,9 +533,11 @@ void MVI(Cpu_state *state, uint8_t reg) {
     }
 
     state->pc++;
+
+    return cyc;
 }
 
-void ADI(Cpu_state *state) {
+int ADI(Cpu_state *state) {
     uint8_t add1 = state->regs[A];
     uint8_t add2 = state->memory[state->pc + 1];
 
@@ -458,9 +552,11 @@ void ADI(Cpu_state *state) {
     set_zsp(state, state->regs[A]);
 
     state->pc++;
+
+    return 7;
 }
 
-void ACI(Cpu_state *state) {
+int ACI(Cpu_state *state) {
     uint8_t add1 = state->regs[A];
     uint8_t add2 = state->memory[state->pc + 1];
 
@@ -475,9 +571,11 @@ void ACI(Cpu_state *state) {
     set_zsp(state, state->regs[A]);
 
     state->pc++;
+
+    return 7;
 }
 
-void SUI(Cpu_state *state) {
+int SUI(Cpu_state *state) {
     uint8_t sub1 = state->regs[A];
     uint8_t sub2 = ~state->memory[state->pc + 1];
 
@@ -492,9 +590,11 @@ void SUI(Cpu_state *state) {
     set_zsp(state, state->regs[A]);
 
     state->pc++;
+
+    return 7;
 }
 
-void SBI(Cpu_state *state) {
+int SBI(Cpu_state *state) {
     uint8_t sub1 = state->regs[A];
     uint8_t sub2 = ~(state->memory[state->pc + 1] + state->cc.cy);
 
@@ -509,36 +609,44 @@ void SBI(Cpu_state *state) {
     set_zsp(state, state->regs[A]);
 
     state->pc++;
+
+    return 7;
 }
 
-void ANI(Cpu_state *state) {
+int ANI(Cpu_state *state) {
     state->regs[A] = state->regs[A] & state->memory[state->pc + 1];
 
     state->cc.cy = 0;
     set_zsp(state, state->regs[A]);
 
     state->pc++;
+
+    return 7;
 }
 
-void XRI(Cpu_state *state) {
+int XRI(Cpu_state *state) {
     state->regs[A] = state->regs[A] ^ state->memory[state->pc + 1];
 
     state->cc.cy = 0;
     set_zsp(state, state->regs[A]);
 
     state->pc++;
+
+    return 7;
 }
 
-void ORI(Cpu_state *state) {
+int ORI(Cpu_state *state) {
     state->regs[A] = state->regs[A] | state->memory[state->pc + 1];
 
     state->cc.cy = 0;
     set_zsp(state, state->regs[A]);
 
     state->pc++;
+
+    return 7;
 }
 
-void CPI(Cpu_state *state) {
+int CPI(Cpu_state *state) {
     uint8_t cmp1 = state->regs[A];
     uint8_t cmp2 = ~state->memory[state->pc + 1];
 
@@ -552,108 +660,137 @@ void CPI(Cpu_state *state) {
     set_zsp(state, res & 0xff);
 
     state->pc++;
+
+    return 7;
 }
 
 // -- Direct addressing instructions --
 
-void STA(Cpu_state *state) {
+int STA(Cpu_state *state) {
     uint16_t address = get_immediate_address(state);
     state->memory[address] = state->regs[A];
 
     state->pc += 2;
+
+    return 13;
 }
 
-void LDA(Cpu_state *state) {
+int LDA(Cpu_state *state) {
     uint16_t address = get_immediate_address(state);
     state->regs[A] = state->memory[address];
 
     state->pc += 2;
+
+    return 13;
 }
 
-void SHLD(Cpu_state *state) {
+int SHLD(Cpu_state *state) {
     uint16_t address = get_immediate_address(state);
     state->memory[address] = state->regs[L];
     state->memory[address + 1] = state->regs[H];
 
     state->pc += 2;
+
+    return 16;
 }
 
-void LHLD(Cpu_state *state) {
+int LHLD(Cpu_state *state) {
     uint16_t address = get_immediate_address(state);
     state->regs[L] = state->memory[address];
     state->regs[H] = state->memory[address + 1];
 
     state->pc += 2;
+
+    return 16;
 }
 
 // -- Jump instructions --
 
-void PCHL(Cpu_state *state) {
+int PCHL(Cpu_state *state) {
     state->pc = get_m_address(state, H, L) - 1;
+    return 5;
 }
 
-void JMP(Cpu_state *state) {
+int JMP(Cpu_state *state) {
     state->pc = get_immediate_address(state) - 1;
+    return 10;
 }
 
-void JC(Cpu_state *state) {
+int JC(Cpu_state *state) {
     if (state->cc.cy)
         JMP(state);
     else
         state->pc += 2;
+
+    return 10;
 }
 
-void JNC(Cpu_state *state) {
+int JNC(Cpu_state *state) {
     if (!state->cc.cy)
         JMP(state);
     else
         state->pc += 2;
+
+    return 10;
 }
 
-void JZ(Cpu_state *state) {
+int JZ(Cpu_state *state) {
     if (state->cc.z)
         JMP(state);
     else
         state->pc += 2;
+
+    return 10;
 }
 
-void JNZ(Cpu_state *state) {
+int JNZ(Cpu_state *state) {
     if (!state->cc.z)
         JMP(state);
     else
         state->pc += 2;
+
+    return 10;
 }
 
-void JM(Cpu_state *state) {
+int JM(Cpu_state *state) {
     if (state->cc.s)
         JMP(state);
     else
         state->pc += 2;
+
+    return 10;
 }
 
-void JP(Cpu_state *state) {
+int JP(Cpu_state *state) {
     if (!state->cc.s)
         JMP(state);
     else
         state->pc += 2;
+
+    return 10;
 }
-void JPE(Cpu_state *state) {
+
+int JPE(Cpu_state *state) {
     if (state->cc.p)
         JMP(state);
     else
         state->pc += 2;
+
+    return 10;
 }
 
-void JPO(Cpu_state *state) {
+int JPO(Cpu_state *state) {
     if (!state->cc.p)
         JMP(state);
     else
         state->pc += 2;
+
+    return 10;
 }
 
 // -- Call subroutine instructions --
 
-void CALL(Cpu_state *state) {
+int CALL(Cpu_state *state) {
 #if CPUDIAG //Required to implement CP/M printing for CPUDIAG
     if (5 == get_immediate_address(state)) {
         if (state->regs[C] == 9) {
@@ -665,6 +802,7 @@ void CALL(Cpu_state *state) {
 
             printf("\n");
         }
+        return 0;
     }
     else if (0 == get_immediate_address(state)) {
         exit(0);
@@ -674,7 +812,7 @@ void CALL(Cpu_state *state) {
         state->memory[state->sp - 2] = return_addr & 0xff;
         state->sp -= 2;
 
-        JMP(state);
+        return JMP(state);
     }
 #else
     uint16_t return_addr = state->pc + 2;
@@ -683,115 +821,142 @@ void CALL(Cpu_state *state) {
     state->sp -= 2;
 
     JMP(state);
+
+    return 17;
 #endif
 }
 
-void CC(Cpu_state *state) {
+int CC(Cpu_state *state) {
     if (state->cc.cy)
-        CALL(state);
-    else
-        state->pc += 2;
+        return CALL(state);
+
+    state->pc += 2;
+    return 11;
 }
 
-void CNC(Cpu_state *state) {
+int CNC(Cpu_state *state) {
     if (!state->cc.cy)
-        CALL(state);
-    else
-        state->pc += 2;
+        return CALL(state);
+
+    state->pc += 2;
+    return 11;
 }
 
-void CZ(Cpu_state *state) {
+int CZ(Cpu_state *state) {
     if (state->cc.z)
-        CALL(state);
-    else
-        state->pc += 2;
+        return CALL(state);
+
+    state->pc += 2;
+    return 11;
 }
 
-void CNZ(Cpu_state *state) {
+int CNZ(Cpu_state *state) {
     if (!state->cc.z)
-        CALL(state);
-    else
-        state->pc += 2;
+        return CALL(state);
+
+    state->pc += 2;
+    return 11;
 }
 
-void CM(Cpu_state *state) {
+int CM(Cpu_state *state) {
     if (state->cc.s)
-        CALL(state);
-    else
-        state->pc += 2;
+        return CALL(state);
+
+    state->pc += 2;
+    return 11;
 }
 
-void CP(Cpu_state *state) {
+int CP(Cpu_state *state) {
     if (!state->cc.s)
-        CALL(state);
-    else
-        state->pc += 2;
+        return CALL(state);
+
+    state->pc += 2;
+    return 11;
 }
 
-void CPE(Cpu_state *state) {
+int CPE(Cpu_state *state) {
     if (state->cc.p)
-        CALL(state);
-    else
-        state->pc += 2;
+        return CALL(state);
+
+    state->pc += 2;
+    return 11;
 }
 
-void CPO(Cpu_state *state) {
+int CPO(Cpu_state *state) {
     if (!state->cc.p)
-        CALL(state);
-    else
-        state->pc += 2;
+        return CALL(state);
+
+    state->pc += 2;
+    return 11;
 }
 
 // -- Return from subroutine instructions --
 
-void RET(Cpu_state *state) {
+int RET(Cpu_state *state) {
     state->pc = state->memory[state->sp] | (state->memory[state->sp+1] << 8);
     state->sp += 2;
+    return 10;
 }
 
-void RC(Cpu_state *state) {
+int RC(Cpu_state *state) {
     if (state->cc.cy)
-        RET(state);
+        return RET(state) + 1;
+
+    return 5;
 }
 
-void RNC(Cpu_state *state) {
+int RNC(Cpu_state *state) {
     if (!state->cc.cy)
-        RET(state);
+        return RET(state) + 1;
+
+    return 5;
 }
 
-void RZ(Cpu_state *state) {
+int RZ(Cpu_state *state) {
     if (state->cc.z)
-        RET(state);
+        return RET(state) + 1;
+
+    return 5;
 }
 
-void RNZ(Cpu_state *state) {
+int RNZ(Cpu_state *state) {
     if (!state->cc.z)
-        RET(state);
+        return RET(state) + 1;
+
+    return 5;
 }
 
-void RM(Cpu_state *state) {
+int RM(Cpu_state *state) {
     if (state->cc.s)
-        RET(state);
+        return RET(state) + 1;
+
+    return 5;
 }
 
-void RP(Cpu_state *state) {
+int RP(Cpu_state *state) {
     if (!state->cc.s)
-        RET(state);
+        return RET(state) + 1;
+
+    return 5;
 }
 
-void RPE(Cpu_state *state) {
+int RPE(Cpu_state *state) {
     if (state->cc.p)
-        RET(state);
+        return RET(state) + 1;
+
+    return 5;
 }
 
-void RPO(Cpu_state *state) {
+int RPO(Cpu_state *state) {
     if (!state->cc.p)
-        RET(state);
+        return RET(state) + 1;
+
+    return 5;
 }
 
 // -- RST --
 
-void RST(Cpu_state *state, uint16_t offset) {
+int RST(Cpu_state *state, uint16_t offset) {
     uint16_t return_addr = state->pc + 2;
     state->memory[state->sp - 1] = return_addr >> 8;
     state->memory[state->sp - 2] = return_addr & 0xff;
@@ -799,37 +964,46 @@ void RST(Cpu_state *state, uint16_t offset) {
 
     state->pc = offset << 3;
     //decrement pc?
+
+    return 11;
 }
 
 // -- Interrupt flip-flop instructions --
 
-void EI(Cpu_state *state) {
+int EI(Cpu_state *state) {
     state->int_enable = 1;
+
+    return 4;
 }
 
-void DI(Cpu_state *state) {
+int DI(Cpu_state *state) {
     state->int_enable = 0;
+
+    return 4;
 }
 
 // -- Input/output instructions --
 
-void IN(Cpu_state *state) {
+int IN(Cpu_state *state) {
     //TODO
     state->pc++;
+    return 10;
 }
 
-void OUT(Cpu_state *state) {
+int OUT(Cpu_state *state) {
     //TODO
     state->pc++;
+    return 10;
 }
 
 // -- HLT --
 
-void HLT(Cpu_state *state) {
+int HLT(Cpu_state *state) {
     if (state->int_enable) {
         //TODO
     }
     exit(0); //TODO implement interrupt response
+    return 7;
 }
 
 // -- The emulation nation --
@@ -837,296 +1011,298 @@ void HLT(Cpu_state *state) {
 int emulate_op(Cpu_state *state) {
     unsigned char op_code = state->memory[state->pc];
 
+    int cyc = 0;
+
     //disassemble_op(state->memory, state->pc);
 
     switch (op_code) {
-    case 0x00: break; // NOP
-    case 0x01: LXI(state, B);       break;
-    case 0x02: STAX(state, B);      break;
-    case 0x03: INX(state, B);       break;
-    case 0x04: INR(state, B);       break;
-    case 0x05: DCR(state, B);       break;
-    case 0x06: MVI(state, B);       break;
-    case 0x07: RLC(state);          break;
+    case 0x00: cyc = 4;                     break; // NOP
+    case 0x01: cyc = LXI(state, B);         break;
+    case 0x02: cyc = STAX(state, B);        break;
+    case 0x03: cyc = INX(state, B);         break;
+    case 0x04: cyc = INR(state, B);         break;
+    case 0x05: cyc = DCR(state, B);         break;
+    case 0x06: cyc = MVI(state, B);         break;
+    case 0x07: cyc = RLC(state);            break;
 
     case 0x08: exit(1); // undocumented instruction!! break;
-    case 0x09: DAD(state, B);       break;
-    case 0x0a: LDAX(state, B);      break;
-    case 0x0b: DCX(state, B);       break;
-    case 0x0c: INR(state, C);       break;
-    case 0x0d: DCR(state, C);       break;
-    case 0x0e: MVI(state, C);       break;
-    case 0x0f: RRC(state);          break;
+    case 0x09: cyc = DAD(state, B);         break;
+    case 0x0a: cyc = LDAX(state, B);        break;
+    case 0x0b: cyc = DCX(state, B);         break;
+    case 0x0c: cyc = INR(state, C);         break;
+    case 0x0d: cyc = DCR(state, C);         break;
+    case 0x0e: cyc = MVI(state, C);         break;
+    case 0x0f: cyc = RRC(state);            break;
 
     case 0x10: exit(1); // undocumented instruction!! break;
-    case 0x11: LXI(state, D);       break;
-    case 0x12: STAX(state, D);      break;
-    case 0x13: INX(state, D);       break;
-    case 0x14: INR(state, D);       break;
-    case 0x15: DCR(state, D);       break;
-    case 0x16: MVI(state, D);       break;
-    case 0x17: RAL(state);          break;
+    case 0x11: cyc = LXI(state, D);         break;
+    case 0x12: cyc = STAX(state, D);        break;
+    case 0x13: cyc = INX(state, D);         break;
+    case 0x14: cyc = INR(state, D);         break;
+    case 0x15: cyc = DCR(state, D);         break;
+    case 0x16: cyc = MVI(state, D);         break;
+    case 0x17: cyc = RAL(state);            break;
 
     case 0x18: exit(1); // undocumented instruction!! break;
-    case 0x19: DAD(state, D);       break;
-    case 0x1a: LDAX(state, D);      break;
-    case 0x1b: DCX(state, D);       break;
-    case 0x1c: INR(state, E);       break;
-    case 0x1d: DCR(state, E);       break;
-    case 0x1e: MVI(state, E);       break;
-    case 0x1f: RAR(state);          break;
+    case 0x19: cyc = DAD(state, D);         break;
+    case 0x1a: cyc = LDAX(state, D);        break;
+    case 0x1b: cyc = DCX(state, D);         break;
+    case 0x1c: cyc = INR(state, E);         break;
+    case 0x1d: cyc = DCR(state, E);         break;
+    case 0x1e: cyc = MVI(state, E);         break;
+    case 0x1f: cyc = RAR(state);            break;
 
     case 0x20: exit(1); // undocumented instruction!! break;
-    case 0x21: LXI(state, H);       break;
-    case 0x22: SHLD(state);         break;
-    case 0x23: INX(state, H);       break;
-    case 0x24: INR(state, H);       break;
-    case 0x25: DCR(state, H);       break;
-    case 0x26: MVI(state, H);       break;
-    case 0x27: DAA(state);          break;
+    case 0x21: cyc = LXI(state, H);         break;
+    case 0x22: cyc = SHLD(state);           break;
+    case 0x23: cyc = INX(state, H);         break;
+    case 0x24: cyc = INR(state, H);         break;
+    case 0x25: cyc = DCR(state, H);         break;
+    case 0x26: cyc = MVI(state, H);         break;
+    case 0x27: cyc = DAA(state);            break;
 
     case 0x28: exit(1); // undocumented instruction!! break;
-    case 0x29: DAD(state, H);       break;
-    case 0x2a: LHLD(state);         break;
-    case 0x2b: DCX(state, H);       break;
-    case 0x2c: INR(state, L);       break;
-    case 0x2d: DCR(state, L);       break;
-    case 0x2e: MVI(state, L);       break;
-    case 0x2f: CMA(state);          break;
+    case 0x29: cyc = DAD(state, H);         break;
+    case 0x2a: cyc = LHLD(state);           break;
+    case 0x2b: cyc = DCX(state, H);         break;
+    case 0x2c: cyc = INR(state, L);         break;
+    case 0x2d: cyc = DCR(state, L);         break;
+    case 0x2e: cyc = MVI(state, L);         break;
+    case 0x2f: cyc = CMA(state);            break;
 
     case 0x30: exit(1); // undocumented instruction!! break;
-    case 0x31: LXI(state, SP);      break;
-    case 0x32: STA(state);          break;
-    case 0x33: INX(state, SP);      break;
-    case 0x34: INR(state, M);       break;
-    case 0x35: DCR(state, M);       break;
-    case 0x36: MVI(state, M);       break;
-    case 0x37: STC(state);          break;
+    case 0x31: cyc = LXI(state, SP);        break;
+    case 0x32: cyc = STA(state);            break;
+    case 0x33: cyc = INX(state, SP);        break;
+    case 0x34: cyc = INR(state, M);         break;
+    case 0x35: cyc = DCR(state, M);         break;
+    case 0x36: cyc = MVI(state, M);         break;
+    case 0x37: cyc = STC(state);            break;
 
     case 0x38: exit(1); // undocumented instruction!! break;
-    case 0x39: DAD(state, SP);      break;
-    case 0x3a: LDA(state);          break;
-    case 0x3b: DCX(state, SP);      break;
-    case 0x3c: INR(state, A);       break;
-    case 0x3d: DCR(state, A);       break;
-    case 0x3e: MVI(state, A);       break;
-    case 0x3f: CMC(state);          break;
+    case 0x39: cyc = DAD(state, SP);        break;
+    case 0x3a: cyc = LDA(state);            break;
+    case 0x3b: cyc = DCX(state, SP);        break;
+    case 0x3c: cyc = INR(state, A);         break;
+    case 0x3d: cyc = DCR(state, A);         break;
+    case 0x3e: cyc = MVI(state, A);         break;
+    case 0x3f: cyc = CMC(state);            break;
 
-    case 0x40: MOV(state, B, B);    break;
-    case 0x41: MOV(state, B, C);    break;
-    case 0x42: MOV(state, B, D);    break;
-    case 0x43: MOV(state, B, E);    break;
-    case 0x44: MOV(state, B, H);    break;
-    case 0x45: MOV(state, B, L);    break;
-    case 0x46: MOV(state, B, M);    break;
-    case 0x47: MOV(state, B, A);    break;
+    case 0x40: cyc = MOV(state, B, B);      break;
+    case 0x41: cyc = MOV(state, B, C);      break;
+    case 0x42: cyc = MOV(state, B, D);      break;
+    case 0x43: cyc = MOV(state, B, E);      break;
+    case 0x44: cyc = MOV(state, B, H);      break;
+    case 0x45: cyc = MOV(state, B, L);      break;
+    case 0x46: cyc = MOV(state, B, M);      break;
+    case 0x47: cyc = MOV(state, B, A);      break;
 
-    case 0x48: MOV(state, C, B);    break;
-    case 0x49: MOV(state, C, C);    break;
-    case 0x4a: MOV(state, C, D);    break;
-    case 0x4b: MOV(state, C, E);    break;
-    case 0x4c: MOV(state, C, H);    break;
-    case 0x4d: MOV(state, C, L);    break;
-    case 0x4e: MOV(state, C, M);    break;
-    case 0x4f: MOV(state, C, A);    break;
+    case 0x48: cyc = MOV(state, C, B);      break;
+    case 0x49: cyc = MOV(state, C, C);      break;
+    case 0x4a: cyc = MOV(state, C, D);      break;
+    case 0x4b: cyc = MOV(state, C, E);      break;
+    case 0x4c: cyc = MOV(state, C, H);      break;
+    case 0x4d: cyc = MOV(state, C, L);      break;
+    case 0x4e: cyc = MOV(state, C, M);      break;
+    case 0x4f: cyc = MOV(state, C, A);      break;
 
-    case 0x50: MOV(state, D, B);    break;
-    case 0x51: MOV(state, D, C);    break;
-    case 0x52: MOV(state, D, D);    break;
-    case 0x53: MOV(state, D, E);    break;
-    case 0x54: MOV(state, D, H);    break;
-    case 0x55: MOV(state, D, L);    break;
-    case 0x56: MOV(state, D, M);    break;
-    case 0x57: MOV(state, D, A);    break;
+    case 0x50: cyc = MOV(state, D, B);      break;
+    case 0x51: cyc = MOV(state, D, C);      break;
+    case 0x52: cyc = MOV(state, D, D);      break;
+    case 0x53: cyc = MOV(state, D, E);      break;
+    case 0x54: cyc = MOV(state, D, H);      break;
+    case 0x55: cyc = MOV(state, D, L);      break;
+    case 0x56: cyc = MOV(state, D, M);      break;
+    case 0x57: cyc = MOV(state, D, A);      break;
 
-    case 0x58: MOV(state, E, B);    break;
-    case 0x59: MOV(state, E, C);    break;
-    case 0x5a: MOV(state, E, D);    break;
-    case 0x5b: MOV(state, E, E);    break;
-    case 0x5c: MOV(state, E, H);    break;
-    case 0x5d: MOV(state, E, L);    break;
-    case 0x5e: MOV(state, E, M);    break;
-    case 0x5f: MOV(state, E, A);    break;
+    case 0x58: cyc = MOV(state, E, B);      break;
+    case 0x59: cyc = MOV(state, E, C);      break;
+    case 0x5a: cyc = MOV(state, E, D);      break;
+    case 0x5b: cyc = MOV(state, E, E);      break;
+    case 0x5c: cyc = MOV(state, E, H);      break;
+    case 0x5d: cyc = MOV(state, E, L);      break;
+    case 0x5e: cyc = MOV(state, E, M);      break;
+    case 0x5f: cyc = MOV(state, E, A);      break;
 
-    case 0x60: MOV(state, H, B);    break;
-    case 0x61: MOV(state, H, C);    break;
-    case 0x62: MOV(state, H, D);    break;
-    case 0x63: MOV(state, H, E);    break;
-    case 0x64: MOV(state, H, H);    break;
-    case 0x65: MOV(state, H, L);    break;
-    case 0x66: MOV(state, H, M);    break;
-    case 0x67: MOV(state, H, A);    break;
+    case 0x60: cyc = MOV(state, H, B);      break;
+    case 0x61: cyc = MOV(state, H, C);      break;
+    case 0x62: cyc = MOV(state, H, D);      break;
+    case 0x63: cyc = MOV(state, H, E);      break;
+    case 0x64: cyc = MOV(state, H, H);      break;
+    case 0x65: cyc = MOV(state, H, L);      break;
+    case 0x66: cyc = MOV(state, H, M);      break;
+    case 0x67: cyc = MOV(state, H, A);      break;
 
-    case 0x68: MOV(state, L, B);    break;
-    case 0x69: MOV(state, L, C);    break;
-    case 0x6a: MOV(state, L, D);    break;
-    case 0x6b: MOV(state, L, E);    break;
-    case 0x6c: MOV(state, L, H);    break;
-    case 0x6d: MOV(state, L, L);    break;
-    case 0x6e: MOV(state, L, M);    break;
-    case 0x6f: MOV(state, L, A);    break;
+    case 0x68: cyc = MOV(state, L, B);      break;
+    case 0x69: cyc = MOV(state, L, C);      break;
+    case 0x6a: cyc = MOV(state, L, D);      break;
+    case 0x6b: cyc = MOV(state, L, E);      break;
+    case 0x6c: cyc = MOV(state, L, H);      break;
+    case 0x6d: cyc = MOV(state, L, L);      break;
+    case 0x6e: cyc = MOV(state, L, M);      break;
+    case 0x6f: cyc = MOV(state, L, A);      break;
 
-    case 0x70: MOV(state, M, B);    break;
-    case 0x71: MOV(state, M, C);    break;
-    case 0x72: MOV(state, M, D);    break;
-    case 0x73: MOV(state, M, E);    break;
-    case 0x74: MOV(state, M, H);    break;
-    case 0x75: MOV(state, M, L);    break;
-    case 0x76: HLT(state);          break;
-    case 0x77: MOV(state, M, A);    break;
+    case 0x70: cyc = MOV(state, M, B);      break;
+    case 0x71: cyc = MOV(state, M, C);      break;
+    case 0x72: cyc = MOV(state, M, D);      break;
+    case 0x73: cyc = MOV(state, M, E);      break;
+    case 0x74: cyc = MOV(state, M, H);      break;
+    case 0x75: cyc = MOV(state, M, L);      break;
+    case 0x76: cyc = HLT(state);            break;
+    case 0x77: cyc = MOV(state, M, A);      break;
 
-    case 0x78: MOV(state, A, B);    break;
-    case 0x79: MOV(state, A, C);    break;
-    case 0x7a: MOV(state, A, D);    break;
-    case 0x7b: MOV(state, A, E);    break;
-    case 0x7c: MOV(state, A, H);    break;
-    case 0x7d: MOV(state, A, L);    break;
-    case 0x7e: MOV(state, A, M);    break;
-    case 0x7f: MOV(state, A, A);    break;
+    case 0x78: cyc = MOV(state, A, B);      break;
+    case 0x79: cyc = MOV(state, A, C);      break;
+    case 0x7a: cyc = MOV(state, A, D);      break;
+    case 0x7b: cyc = MOV(state, A, E);      break;
+    case 0x7c: cyc = MOV(state, A, H);      break;
+    case 0x7d: cyc = MOV(state, A, L);      break;
+    case 0x7e: cyc = MOV(state, A, M);      break;
+    case 0x7f: cyc = MOV(state, A, A);      break;
 
-    case 0x80: ADD(state, B);       break;
-    case 0x81: ADD(state, C);       break;
-    case 0x82: ADD(state, D);       break;
-    case 0x83: ADD(state, E);       break;
-    case 0x84: ADD(state, H);       break;
-    case 0x85: ADD(state, L);       break;
-    case 0x86: ADD(state, M);       break;
-    case 0x87: ADD(state, A);       break;
+    case 0x80: cyc = ADD(state, B);         break;
+    case 0x81: cyc = ADD(state, C);         break;
+    case 0x82: cyc = ADD(state, D);         break;
+    case 0x83: cyc = ADD(state, E);         break;
+    case 0x84: cyc = ADD(state, H);         break;
+    case 0x85: cyc = ADD(state, L);         break;
+    case 0x86: cyc = ADD(state, M);         break;
+    case 0x87: cyc = ADD(state, A);         break;
 
-    case 0x88: ADC(state, B);       break;
-    case 0x89: ADC(state, C);       break;
-    case 0x8a: ADC(state, D);       break;
-    case 0x8b: ADC(state, E);       break;
-    case 0x8c: ADC(state, H);       break;
-    case 0x8d: ADC(state, L);       break;
-    case 0x8e: ADC(state, M);       break;
-    case 0x8f: ADC(state, A);       break;
+    case 0x88: cyc = ADC(state, B);         break;
+    case 0x89: cyc = ADC(state, C);         break;
+    case 0x8a: cyc = ADC(state, D);         break;
+    case 0x8b: cyc = ADC(state, E);         break;
+    case 0x8c: cyc = ADC(state, H);         break;
+    case 0x8d: cyc = ADC(state, L);         break;
+    case 0x8e: cyc = ADC(state, M);         break;
+    case 0x8f: cyc = ADC(state, A);         break;
 
-    case 0x90: SUB(state, B);       break;
-    case 0x91: SUB(state, C);       break;
-    case 0x92: SUB(state, D);       break;
-    case 0x93: SUB(state, E);       break;
-    case 0x94: SUB(state, H);       break;
-    case 0x95: SUB(state, L);       break;
-    case 0x96: SUB(state, M);       break;
-    case 0x97: SUB(state, A);       break;
+    case 0x90: cyc = SUB(state, B);         break;
+    case 0x91: cyc = SUB(state, C);         break;
+    case 0x92: cyc = SUB(state, D);         break;
+    case 0x93: cyc = SUB(state, E);         break;
+    case 0x94: cyc = SUB(state, H);         break;
+    case 0x95: cyc = SUB(state, L);         break;
+    case 0x96: cyc = SUB(state, M);         break;
+    case 0x97: cyc = SUB(state, A);         break;
 
-    case 0x98: SBB(state, B);       break;
-    case 0x99: SBB(state, C);       break;
-    case 0x9a: SBB(state, D);       break;
-    case 0x9b: SBB(state, E);       break;
-    case 0x9c: SBB(state, H);       break;
-    case 0x9d: SBB(state, L);       break;
-    case 0x9e: SBB(state, M);       break;
-    case 0x9f: SBB(state, A);       break;
+    case 0x98: cyc = SBB(state, B);         break;
+    case 0x99: cyc = SBB(state, C);         break;
+    case 0x9a: cyc = SBB(state, D);         break;
+    case 0x9b: cyc = SBB(state, E);         break;
+    case 0x9c: cyc = SBB(state, H);         break;
+    case 0x9d: cyc = SBB(state, L);         break;
+    case 0x9e: cyc = SBB(state, M);         break;
+    case 0x9f: cyc = SBB(state, A);         break;
 
-    case 0xa0: ANA(state, B);       break;
-    case 0xa1: ANA(state, C);       break;
-    case 0xa2: ANA(state, D);       break;
-    case 0xa3: ANA(state, E);       break;
-    case 0xa4: ANA(state, H);       break;
-    case 0xa5: ANA(state, L);       break;
-    case 0xa6: ANA(state, M);       break;
-    case 0xa7: ANA(state, A);       break;
+    case 0xa0: cyc = ANA(state, B);         break;
+    case 0xa1: cyc = ANA(state, C);         break;
+    case 0xa2: cyc = ANA(state, D);         break;
+    case 0xa3: cyc = ANA(state, E);         break;
+    case 0xa4: cyc = ANA(state, H);         break;
+    case 0xa5: cyc = ANA(state, L);         break;
+    case 0xa6: cyc = ANA(state, M);         break;
+    case 0xa7: cyc = ANA(state, A);         break;
 
-    case 0xa8: XRA(state, B);       break;
-    case 0xa9: XRA(state, C);       break;
-    case 0xaa: XRA(state, D);       break;
-    case 0xab: XRA(state, E);       break;
-    case 0xac: XRA(state, H);       break;
-    case 0xad: XRA(state, L);       break;
-    case 0xae: XRA(state, M);       break;
-    case 0xaf: XRA(state, A);       break;
+    case 0xa8: cyc = XRA(state, B);         break;
+    case 0xa9: cyc = XRA(state, C);         break;
+    case 0xaa: cyc = XRA(state, D);         break;
+    case 0xab: cyc = XRA(state, E);         break;
+    case 0xac: cyc = XRA(state, H);         break;
+    case 0xad: cyc = XRA(state, L);         break;
+    case 0xae: cyc = XRA(state, M);         break;
+    case 0xaf: cyc = XRA(state, A);         break;
 
-    case 0xb0: ORA(state, B);       break;
-    case 0xb1: ORA(state, C);       break;
-    case 0xb2: ORA(state, D);       break;
-    case 0xb3: ORA(state, E);       break;
-    case 0xb4: ORA(state, H);       break;
-    case 0xb5: ORA(state, L);       break;
-    case 0xb6: ORA(state, M);       break;
-    case 0xb7: ORA(state, A);       break;
+    case 0xb0: cyc = ORA(state, B);         break;
+    case 0xb1: cyc = ORA(state, C);         break;
+    case 0xb2: cyc = ORA(state, D);         break;
+    case 0xb3: cyc = ORA(state, E);         break;
+    case 0xb4: cyc = ORA(state, H);         break;
+    case 0xb5: cyc = ORA(state, L);         break;
+    case 0xb6: cyc = ORA(state, M);         break;
+    case 0xb7: cyc = ORA(state, A);         break;
 
-    case 0xb8: CMP(state, B);       break;
-    case 0xb9: CMP(state, C);       break;
-    case 0xba: CMP(state, D);       break;
-    case 0xbb: CMP(state, E);       break;
-    case 0xbc: CMP(state, H);       break;
-    case 0xbd: CMP(state, L);       break;
-    case 0xbe: CMP(state, M);       break;
-    case 0xbf: CMP(state, A);       break;
+    case 0xb8: cyc = CMP(state, B);         break;
+    case 0xb9: cyc = CMP(state, C);         break;
+    case 0xba: cyc = CMP(state, D);         break;
+    case 0xbb: cyc = CMP(state, E);         break;
+    case 0xbc: cyc = CMP(state, H);         break;
+    case 0xbd: cyc = CMP(state, L);         break;
+    case 0xbe: cyc = CMP(state, M);         break;
+    case 0xbf: cyc = CMP(state, A);         break;
 
-    case 0xc0: RNZ(state);          break;
-    case 0xc1: POP(state, B);       break;
-    case 0xc2: JNZ(state);          break;
-    case 0xc3: JMP(state);          break;
-    case 0xc4: CNZ(state);          break;
-    case 0xc5: PUSH(state, B);      break;
-    case 0xc6: ADI(state);          break;
-    case 0xc7: RST(state, 0);       break;
+    case 0xc0: cyc = RNZ(state);            break;
+    case 0xc1: cyc = POP(state, B);         break;
+    case 0xc2: cyc = JNZ(state);            break;
+    case 0xc3: cyc = JMP(state);            break;
+    case 0xc4: cyc = CNZ(state);            break;
+    case 0xc5: cyc = PUSH(state, B);        break;
+    case 0xc6: cyc = ADI(state);            break;
+    case 0xc7: cyc = RST(state, 0);         break;
 
-    case 0xc8: RZ(state);           break;
-    case 0xc9: RET(state);          break;
-    case 0xca: JZ(state);           break;
-    case 0xcb: exit(1); // undocumented instruction!! break;
-    case 0xcc: CZ(state);           break;
-    case 0xcd: CALL(state);         break;
-    case 0xce: ACI(state);          break;
-    case 0xcf: RST(state, 1);       break;
+    case 0xc8: cyc = RZ(state);             break;
+    case 0xc9: cyc = RET(state);            break;
+    case 0xca: cyc = JZ(state);             break;
+    case 0xcb: exit(1);   // undocumented instruction!! break;
+    case 0xcc: cyc = CZ(state);             break;
+    case 0xcd: cyc = CALL(state);           break;
+    case 0xce: cyc = ACI(state);            break;
+    case 0xcf: cyc = RST(state, 1);         break;
 
-    case 0xd0: RNC(state);          break;
-    case 0xd1: POP(state, D);       break;
-    case 0xd2: JNC(state);          break;
-    case 0xd3: OUT(state);          break;
-    case 0xd4: CNC(state);          break;
-    case 0xd5: PUSH(state, D);      break;
-    case 0xd6: SUI(state);          break;
-    case 0xd7: RST(state, 2);       break;
+    case 0xd0: cyc = RNC(state);            break;
+    case 0xd1: cyc = POP(state, D);         break;
+    case 0xd2: cyc = JNC(state);            break;
+    case 0xd3: cyc = OUT(state);            break;
+    case 0xd4: cyc = CNC(state);            break;
+    case 0xd5: cyc = PUSH(state, D);        break;
+    case 0xd6: cyc = SUI(state);            break;
+    case 0xd7: cyc = RST(state, 2);         break;
 
-    case 0xd8: RC(state);           break;
-    case 0xd9: exit(1); // undocumented instruction!! break;
-    case 0xda: JC(state);           break;
-    case 0xdb: IN(state);           break;
-    case 0xdc: CC(state);           break;
-    case 0xdd: exit(1); // undocumented instruction!! break;
-    case 0xde: SBI(state);          break;
-    case 0xdf: RST(state, 3);       break;
+    case 0xd8: cyc = RC(state);             break;
+    case 0xd9: exit(1);   // undocumented instruction!! break;
+    case 0xda: cyc = JC(state);             break;
+    case 0xdb: cyc = IN(state);             break;
+    case 0xdc: cyc = CC(state);             break;
+    case 0xdd: exit(1);   // undocumented instruction!! break;
+    case 0xde: cyc = SBI(state);            break;
+    case 0xdf: cyc = RST(state, 3);         break;
 
-    case 0xe0: RPO(state);          break;
-    case 0xe1: POP(state, H);       break;
-    case 0xe2: JPO(state);          break;
-    case 0xe3: XTHL(state);         break;
-    case 0xe4: CPO(state);          break;
-    case 0xe5: PUSH(state, H);      break;
-    case 0xe6: ANI(state);          break;
-    case 0xe7: RST(state, 4);       break;
+    case 0xe0: cyc = RPO(state);            break;
+    case 0xe1: cyc = POP(state, H);         break;
+    case 0xe2: cyc = JPO(state);            break;
+    case 0xe3: cyc = XTHL(state);           break;
+    case 0xe4: cyc = CPO(state);            break;
+    case 0xe5: cyc = PUSH(state, H);        break;
+    case 0xe6: cyc = ANI(state);            break;
+    case 0xe7: cyc = RST(state, 4);         break;
 
-    case 0xe8: RPE(state);          break;
-    case 0xe9: PCHL(state);         break;
-    case 0xea: JPE(state);          break;
-    case 0xeb: XCHG(state);         break;
-    case 0xec: CPE(state);          break;
-    case 0xed: exit(1); // undocumented instruction!! break;
-    case 0xee: XRI(state);          break;
-    case 0xef: RST(state, 5);       break;
+    case 0xe8: cyc = RPE(state);            break;
+    case 0xe9: cyc = PCHL(state);           break;
+    case 0xea: cyc = JPE(state);            break;
+    case 0xeb: cyc = XCHG(state);           break;
+    case 0xec: cyc = CPE(state);            break;
+    case 0xed: exit(1);   // undocumented instruction!! break;
+    case 0xee: cyc = XRI(state);            break;
+    case 0xef: cyc = RST(state, 5);         break;
 
-    case 0xf0: RP(state);           break;
-    case 0xf1: POP(state, PSW);     break;
-    case 0xf2: JP(state);           break;
-    case 0xf3: DI(state);           break;
-    case 0xf4: CP(state);           break;
-    case 0xf5: PUSH(state, PSW);    break;
-    case 0xf6: ORI(state);          break;
-    case 0xf7: RST(state, 6);       break;
+    case 0xf0: cyc = RP(state);             break;
+    case 0xf1: cyc = POP(state, PSW);       break;
+    case 0xf2: cyc = JP(state);             break;
+    case 0xf3: cyc = DI(state);             break;
+    case 0xf4: cyc = CP(state);             break;
+    case 0xf5: cyc = PUSH(state, PSW);      break;
+    case 0xf6: cyc = ORI(state);            break;
+    case 0xf7: cyc = RST(state, 6);         break;
 
-    case 0xf8: RM(state);           break;
-    case 0xf9: SPHL(state);         break;
-    case 0xfa: JM(state);           break;
-    case 0xfb: EI(state);           break;
-    case 0xfc: CM(state);           break;
-    case 0xfd: exit(1); // undocumented instruction!! break;
-    case 0xfe: CPI(state);          break;
-    case 0xff: RST(state, 7);       break;
+    case 0xf8: cyc = RM(state);             break;
+    case 0xf9: cyc = SPHL(state);           break;
+    case 0xfa: cyc = JM(state);             break;
+    case 0xfb: cyc = EI(state);             break;
+    case 0xfc: cyc = CM(state);             break;
+    case 0xfd: exit(1);   // undocumented instruction!! break;
+    case 0xfe: cyc = CPI(state);            break;
+    case 0xff: cyc = RST(state, 7);         break;
     }
 
     /*
@@ -1139,5 +1315,5 @@ int emulate_op(Cpu_state *state) {
 
     state->pc++;
 
-    return 0;
+    return cyc;
 }

@@ -94,16 +94,18 @@ int main() {
     //atexit(cleanup);
 
     bool done = false;
+    int cyc = 0;
     while (!done) {
         prepareScene(system.display, system.state->memory);
 
         handleInput(system.input);
 
-        done = emulate_op(system.state);
+        for (int i = 0; i < 1000; i++)
+            cyc += emulate_op(system.state);
 
         presentScene(system.display);
 
-        SDL_Delay(16);
+        //SDL_Delay(1);
     }
 
     //TODO free structs
