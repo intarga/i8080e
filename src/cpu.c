@@ -1013,7 +1013,9 @@ int emulate_op(Cpu_state *state) {
 
     int cyc = 0;
 
-    //disassemble_op(state->memory, state->pc);
+#if DISASSEMBLE_IN_EMULATION
+    disassemble_op(state->memory, state->pc);
+#endif
 
     switch (op_code) {
     case 0x00: cyc = 4;                     break; // NOP
@@ -1305,13 +1307,13 @@ int emulate_op(Cpu_state *state) {
     case 0xff: cyc = RST(state, 7);         break;
     }
 
-    /*
+#if PRINT_STATE
     printf("\tC=%d,P=%d,S=%d,Z=%d,AC=%d\n", state->cc.cy, state->cc.p,
             state->cc.s, state->cc.z, state->cc.ac);
     printf("\tA $%02x B $%02x C $%02x D $%02x E $%02x H $%02x L $%02x SP %04x\n",
             state->regs[A], state->regs[B], state->regs[C], state->regs[D],
             state->regs[E], state->regs[H], state->regs[L], state->sp);
-    //    */
+#endif
 
     state->pc++;
 

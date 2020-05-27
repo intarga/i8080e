@@ -2,6 +2,9 @@
 
 #define CPUDIAG 0
 
+#define DISASSEMBLE_IN_EMULATION 0
+#define PRINT_STATE 0
+
 // -- Register names --
 
 #define A 0 // accumulator
