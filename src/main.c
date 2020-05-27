@@ -108,12 +108,12 @@ int main() {
             while (cyc < CYCLES_PER_FRAME / 2)
                 cyc += emulate_op(system.state);
 
-            //interrupt
+            cyc += interrupt(system.state, 1);
 
             while (cyc < CYCLES_PER_FRAME)
                 cyc += emulate_op(system.state);
 
-            //interrupt2
+            cyc += interrupt(system.state, 2);
 
             cyc = CYCLES_PER_FRAME - cyc;
 

@@ -1317,3 +1317,8 @@ int emulate_op(Cpu_state *state) {
 
     return cyc;
 }
+
+int interrupt(Cpu_state *state, uint16_t offset) {
+    state->pc -= 3;
+    return RST(state, offset);
+}

@@ -38,4 +38,4 @@ typedef struct {
 // -- Exported functions
 
 int emulate_op(Cpu_state *state);
-
+int interrupt(Cpu_state *state, uint16_t offset);
