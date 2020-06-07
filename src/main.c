@@ -13,9 +13,15 @@
 #define CYCLES_PER_FRAME 2000000 / FRAMERATE
 
 typedef struct {
+    uint16_t shift;
+    uint8_t offset;
+} Port;
+
+typedef struct {
     Cpu_state *state;
     Display *display;
     Input *input;
+    Port *port;
 } Arcade_system;
 
 unsigned char *initalise_memory(char *rom_filename) {
@@ -62,6 +68,11 @@ Arcade_system initialise_system() {
 
     system.state = malloc(sizeof(Cpu_state));
     initalise_state(system.state, "rom/invaders");
+
+    system.port = malloc(sizeof(Port));
+    system.port->offset = 0;
+    system.port->shift = 0;
+
     /*
     Cpu_state state;
     initalise_state(&state, "rom/invaders");
@@ -73,6 +84,55 @@ Arcade_system initialise_system() {
     //system.display = &(Display) {};
 
     return system;
+}
+
+int invaders_IN(Arcade_system *system) {
+    uint8_t port = system->state->memory[system->state->pc + 1];
+
+    switch (port) {
+    case 3:
+        system->state->regs[A] =
+            system->port->shift >> (8 - system->port->offset);
+        break;
+    }
+
+    system->state->pc += 2;
+    return 10;
+}
+
+int invaders_OUT(Arcade_system *system) {
+    uint8_t port = system->state->memory[system->state->pc + 1];
+
+    switch (port) {
+    case 2:
+        system->port->offset = system->state->regs[A] & 0x07;
+        break;
+    case 4:
+        system->port->shift =
+            (system->port->shift >> 8) | (system->state->regs[A] << 8);
+        break;
+    }
+
+    system->state->pc += 2;
+    return 10;
+}
+
+int invaders_op(Arcade_system *system) {
+    unsigned char op_code = system->state->memory[system->state->pc];
+    int cyc = 0;
+
+    switch (op_code) {
+    case 0xdb:
+        cyc = invaders_IN(system);
+        break;
+    case 0xd3:
+        cyc = invaders_OUT(system);
+        break;
+    default:
+        cyc = emulate_op(system->state);
+    }
+
+    return cyc;
 }
 
 int main() {
@@ -106,12 +166,12 @@ int main() {
             handleInput(system.input);
 
             while (cyc < CYCLES_PER_FRAME / 2)
-                cyc += emulate_op(system.state);
+                cyc += invaders_op(&system);
 
             cyc += interrupt(system.state, 1);
 
             while (cyc < CYCLES_PER_FRAME)
-                cyc += emulate_op(system.state);
+                cyc += invaders_op(&system);
 
             cyc += interrupt(system.state, 2);
 
