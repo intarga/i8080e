@@ -1321,7 +1321,7 @@ int emulate_op(Cpu_state *state) {
 }
 
 int interrupt(Cpu_state *state, uint16_t offset) {
-    if (state->int_enable == 1) {
+    if (state->int_enable) {
         state->pc -= 3;
         state->int_enable = 0;
         return RST(state, offset);
