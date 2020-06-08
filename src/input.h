@@ -1,10 +1,15 @@
 #include <SDL2/SDL.h>
 
 typedef struct {
-    int up;
-    int down;
-    int left;
-    int right;
+    int left1;
+    int right1;
+    int shot1;
+    int start1;
+    int left2;
+    int right2;
+    int shot2;
+    int start2;
+    int coin;
 } Input;
 
 void keyUpHandler(SDL_KeyboardEvent *event, Input *input);

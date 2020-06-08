@@ -69,6 +69,8 @@ Arcade_system initialise_system() {
     system.state = malloc(sizeof(Cpu_state));
     initalise_state(system.state, "rom/invaders");
 
+    system.input = malloc(sizeof(Input));
+
     system.port = malloc(sizeof(Port));
     system.port->offset = 0;
     system.port->shift = 0;
@@ -90,6 +92,20 @@ int invaders_IN(Arcade_system *system) {
     uint8_t port = system->state->memory[system->state->pc + 1];
 
     switch (port) {
+    case 1:
+        system->state->regs[A] = system->input->coin
+            | (system->input->start2 << 1)
+            | (system->input->start1 << 2)
+            | (1 << 3)
+            | (system->input->shot1 << 4)
+            | (system->input->left1 << 5)
+            | (system->input->right1 << 6);
+        break;
+    case 2:
+        system->state->regs[A] = (system->input->shot2 << 4)
+            | (system->input->left2 << 5)
+            | (system->input->right2 << 6);
+        break;
     case 3:
         system->state->regs[A] =
             system->port->shift >> (8 - system->port->offset);
