@@ -26,7 +26,14 @@ uint16_t get_m_address(Cpu_state *state, uint8_t reg1, uint8_t reg2) {
 }
 
 uint16_t get_immediate_address(Cpu_state *state) {
-     return (state->memory[state->pc + 2] << 8) | state->memory[state->pc + 1];
+    return (state->memory[state->pc + 2] << 8) | state->memory[state->pc + 1];
+}
+
+// Apparently Space Invaders tries to write outside its allocated RAM sometimes...
+void write_memory(Cpu_state *state, uint16_t address, uint8_t value) {
+    if (address >= 0x2000 && address < 0x4000) {
+        state->memory[address] = value;
+    }
 }
 
 // -- Carry bit instructions --
@@ -51,7 +58,8 @@ int INR(Cpu_state *state, uint8_t reg) {
         cyc = 10;
 
         uint16_t address = get_m_address(state, H, L);
-        res = ++state->memory[address];
+        res = state->memory[address] + 1;
+        write_memory(state, address, res);
     } else {
         res = ++state->regs[reg];
     }
@@ -69,7 +77,8 @@ int DCR(Cpu_state *state, uint8_t reg) {
         cyc = 10;
 
         uint16_t address = get_m_address(state, H, L);
-        res = --state->memory[address];
+        res = state->memory[address] - 1;
+        write_memory(state, address, res);
     } else {
         res = --state->regs[reg];
     }
@@ -117,7 +126,7 @@ int MOV(Cpu_state *state, uint8_t reg1, uint8_t reg2) {
         cyc = 7;
 
         uint16_t address = get_m_address(state, H, L);
-        state->memory[address] = byte;
+        write_memory(state, address, byte);
     } else {
         state->regs[reg1] = byte;
     }
@@ -127,7 +136,7 @@ int MOV(Cpu_state *state, uint8_t reg1, uint8_t reg2) {
 
 int STAX(Cpu_state *state, uint8_t reg) {
     uint16_t address = get_m_address(state, reg, reg + 1);
-    state->memory[address] = state->regs[A];
+    write_memory(state, address, state->regs[A]);
 
     return 7;
 }
@@ -394,8 +403,8 @@ int PUSH(Cpu_state *state, uint8_t reg) {
         byte2 = state->regs[reg + 1];
     }
 
-    state->memory[state->sp - 1] = byte1;
-    state->memory[state->sp - 2] = byte2;
+    write_memory(state, state->sp - 1, byte1);
+    write_memory(state, state->sp - 2, byte2);
 
     state->sp -= 2;
 
@@ -490,8 +499,8 @@ int XTHL(Cpu_state *state) {
     state->regs[L] = state->memory[state->sp];
     state->regs[H] = state->memory[state->sp + 1];
 
-    state->memory[state->sp] = l_data;
-    state->memory[state->sp + 1] = h_data;
+    write_memory(state, state->sp, l_data);
+    write_memory(state, state->sp + 1, h_data);
 
     return 18;
 }
@@ -527,7 +536,7 @@ int MVI(Cpu_state *state, uint8_t reg) {
         cyc = 10;
 
         uint16_t address = get_m_address(state, H, L);
-        state->memory[address] = byte;
+        write_memory(state, address, byte);
     } else {
         state->regs[reg] = byte;
     }
@@ -668,7 +677,7 @@ int CPI(Cpu_state *state) {
 
 int STA(Cpu_state *state) {
     uint16_t address = get_immediate_address(state);
-    state->memory[address] = state->regs[A];
+    write_memory(state, address, state->regs[A]);
 
     state->pc += 2;
 
@@ -686,8 +695,8 @@ int LDA(Cpu_state *state) {
 
 int SHLD(Cpu_state *state) {
     uint16_t address = get_immediate_address(state);
-    state->memory[address] = state->regs[L];
-    state->memory[address + 1] = state->regs[H];
+    write_memory(state, address, state->regs[L]);
+    write_memory(state, address + 1, state->regs[H]);
 
     state->pc += 2;
 
@@ -808,16 +817,16 @@ int CALL(Cpu_state *state) {
         exit(0);
     } else {
         uint16_t return_addr = state->pc + 2;
-        state->memory[state->sp - 1] = return_addr >> 8;
-        state->memory[state->sp - 2] = return_addr & 0xff;
+        write_memory(state, state->sp - 1, return_addr >> 8);
+        write_memory(state, state->sp - 2, return_addr & 0xff);
         state->sp -= 2;
 
         return JMP(state);
     }
 #else
     uint16_t return_addr = state->pc + 2;
-    state->memory[state->sp - 1] = return_addr >> 8;
-    state->memory[state->sp - 2] = return_addr & 0xff;
+    write_memory(state, state->sp - 1, return_addr >> 8);
+    write_memory(state, state->sp - 2, return_addr & 0xff);
     state->sp -= 2;
 
     JMP(state);
@@ -958,8 +967,8 @@ int RPO(Cpu_state *state) {
 
 int RST(Cpu_state *state, uint16_t offset) {
     uint16_t return_addr = state->pc + 2;
-    state->memory[state->sp - 1] = return_addr >> 8;
-    state->memory[state->sp - 2] = return_addr & 0xff;
+    write_memory(state, state->sp - 1, return_addr >> 8);
+    write_memory(state, state->sp - 2, return_addr & 0xff);
     state->sp -= 2;
 
     state->pc = offset << 3;
