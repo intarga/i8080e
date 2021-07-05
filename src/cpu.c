@@ -837,7 +837,7 @@ int CALL(Cpu_state *state) {
         return JMP(state);
     }
 #else
-    uint16_t return_addr = state->pc + 2;
+    uint16_t return_addr = state->pc + 3;
     write_memory(state, state->sp - 1, return_addr >> 8);
     write_memory(state, state->sp - 2, return_addr & 0xff);
     state->sp -= 2;
@@ -916,6 +916,7 @@ int CPO(Cpu_state *state) {
 
 int RET(Cpu_state *state) {
     state->pc = state->memory[state->sp] | (state->memory[state->sp+1] << 8);
+    state->pc--;
     state->sp += 2;
     return 10;
 }
@@ -979,7 +980,7 @@ int RPO(Cpu_state *state) {
 // -- RST --
 
 int RST(Cpu_state *state, uint16_t offset) {
-    uint16_t return_addr = state->pc + 2;
+    uint16_t return_addr = state->pc + 3;
     write_memory(state, state->sp - 1, return_addr >> 8);
     write_memory(state, state->sp - 2, return_addr & 0xff);
     state->sp -= 2;
