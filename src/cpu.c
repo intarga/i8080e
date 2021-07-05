@@ -86,7 +86,7 @@ int DCR(Cpu_state *state, uint8_t reg) {
     }
 
     set_zsp(state, res);
-    state->cc.ac = ((res & 0x0f) == 0x0f);
+    state->cc.ac = !((res & 0x0f) == 0x0f);
     return cyc;
 }
 
@@ -272,6 +272,8 @@ int ANA(Cpu_state *state, uint8_t reg) {
         and = state->regs[reg];
     }
 
+    state->cc.ac = ((state->regs[A] | and) & 0x08) != 0;
+
     state->regs[A] = state->regs[A] & and;
 
     state->cc.cy = 0;
@@ -295,6 +297,7 @@ int XRA(Cpu_state *state, uint8_t reg) {
     state->regs[A] = state->regs[A] ^ xor;
 
     state->cc.cy = 0;
+    state->cc.ac = 0;
     set_zsp(state, state->regs[A]);
 
     return cyc;
@@ -314,6 +317,7 @@ int ORA(Cpu_state *state, uint8_t reg) {
     state->regs[A] = state->regs[A] | or;
 
     state->cc.cy = 0;
+    state->cc.ac = 0;
     set_zsp(state, state->regs[A]);
 
     return cyc;
@@ -334,7 +338,8 @@ int CMP(Cpu_state *state, uint8_t reg) {
     }
 
     // might be wrong... data book didn't specify the behaviour
-    state->cc.ac = (((cmp1 & 0x0f) + (cmp2 & 0x0f) + 1) & 0xf0) == 0;
+    int16_t sub = cmp1 - ~cmp2;
+    state->cc.ac = (~(cmp1 ^ sub ^ ~cmp2) & 0x10) != 0;
 
     uint16_t res = cmp1 + cmp2 + 1;
 
@@ -625,7 +630,11 @@ int SBI(Cpu_state *state) {
 }
 
 int ANI(Cpu_state *state) {
-    state->regs[A] = state->regs[A] & state->memory[state->pc + 1];
+    uint8_t and = state->memory[state->pc + 1];
+
+    state->cc.ac = ((state->regs[A] | and) & 0x08) != 0;
+
+    state->regs[A] = state->regs[A] & and;
 
     state->cc.cy = 0;
     set_zsp(state, state->regs[A]);
@@ -650,6 +659,7 @@ int ORI(Cpu_state *state) {
     state->regs[A] = state->regs[A] | state->memory[state->pc + 1];
 
     state->cc.cy = 0;
+    state->cc.ac = 0;
     set_zsp(state, state->regs[A]);
 
     state->pc++;
@@ -662,7 +672,8 @@ int CPI(Cpu_state *state) {
     uint8_t cmp2 = ~state->memory[state->pc + 1];
 
     // might be wrong... data book didn't specify the behaviour
-    state->cc.ac = (((cmp1 & 0x0f) + (cmp2 & 0x0f) + 1) & 0xf0) == 0;
+    int16_t sub = cmp1 - ~cmp2;
+    state->cc.ac = (~(cmp1 ^ sub ^ ~cmp2) & 0x10) != 0;
 
     uint16_t res = cmp1 + cmp2 + 1;
 
