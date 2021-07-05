@@ -1,5 +1,6 @@
-# 8080-emulator
-A simple emulator for the Intel 8080, along with other parts of the Space Invaders arcade system. Tested with the CPUDIAG routine, and space invaders. 
+# i8080e
+
+A simple emulator for the Intel 8080, along with other parts of the Space Invaders arcade system. Tested with the CPUDIAG routine, and space invaders.
 
 This is a work in progress. CPU emulation is complete, but I/O remains to be implemented.
 
@@ -13,11 +14,11 @@ Only tested with x86_64 Linux, but probably anything with a C compiler and SDL b
 
 - glibc (Other C standard library implementations would probably work too) <version>
 
-- SDL 2 <version>
+- LibSDL 2 <version>
 
 ### Building
 
-Run `$ make release` in the project directory to build, it puts the executable at `bin/8080-emulator`
+Run `$ make release` in the project directory to build, it puts the executable at `bin/i8080e`
 
 ### Getting the ROM
 
@@ -31,6 +32,6 @@ Once you have it, extract it to `<project_directory>/rom`, and then concatenate 
 
 Simply execute the binary from the project directory to run.
 
-`$ bin/8080-emulator`
+`$ bin/i8080e`
 
 no arguments or flags are needed and it'll pick up and load the ROM from its directory.

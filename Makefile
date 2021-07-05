@@ -1,4 +1,4 @@
-TARGET = 8080-emulator
+TARGET = i8080e
 
 CC = gcc
 CFLAGS = -Wall -Werror -Wextra
