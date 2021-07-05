@@ -70,6 +70,15 @@ Arcade_system initialise_system() {
     initalise_state(system.state, "rom/invaders");
 
     system.input = malloc(sizeof(Input));
+    system.input->left1 = 0;
+    system.input->right1 = 0;
+    system.input->shot1 = 0;
+    system.input->start1 = 0;
+    system.input->left2 = 0;
+    system.input->right2 = 0;
+    system.input->shot2 = 0;
+    system.input->start2 = 0;
+    system.input->coin = 0;
 
     system.port = malloc(sizeof(Port));
     system.port->offset = 0;
