@@ -38,6 +38,8 @@ void keyHandler(SDL_KeyboardEvent *event, Input *input, int down) {
 }
 
 void handleInput(Input *input) {
+    input++;
+    /*
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
@@ -48,7 +50,6 @@ void handleInput(Input *input) {
         }
     }
 
-    /*
     if (input->up) {
         //TODO
     }
