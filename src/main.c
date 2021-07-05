@@ -38,12 +38,18 @@ unsigned char *initalise_memory(char *rom_filename) {
     unsigned char *memory = malloc(sizeof(unsigned char) * 16000);
     memset(memory, 0, 16000);
 
+    int bytes_read;
 #if CPUDIAG //TODO implement without #if
-    fread(&memory[0x100], 1, fsize, f);
+    bytes_read = fread(&memory[0x100], 1, fsize, f);
 #else
-    fread(memory, 1, fsize, f);
+    bytes_read = fread(memory, 1, fsize, f);
 #endif
     fclose(f);
+
+    if (bytes_read != fsize) {
+        printf("Failed to fully read file: %s\n", rom_filename);
+        exit(1);
+    }
 
     return memory;
 }

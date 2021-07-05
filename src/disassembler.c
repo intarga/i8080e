@@ -299,8 +299,13 @@ unsigned char *read_rom(char *filename, int *fsize) {
 
     unsigned char *buffer = malloc(*fsize);
 
-    fread(buffer, 1, *fsize, f);
+    int bytes_read = fread(buffer, 1, *fsize, f);
     fclose(f);
+
+    if (bytes_read != *fsize) {
+        printf("Failed to fully read file: %s\n", filename);
+        exit(1);
+    }
 
     return buffer;
 }
