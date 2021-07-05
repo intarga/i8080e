@@ -29,9 +29,11 @@ uint16_t get_immediate_address(Cpu_state *state) {
     return (state->memory[state->pc + 2] << 8) | state->memory[state->pc + 1];
 }
 
-// Apparently Space Invaders tries to write outside its allocated RAM sometimes...
 void write_memory(Cpu_state *state, uint16_t address, uint8_t value) {
-    if (address >= 0x2000 && address < 0x4000) {
+    if (address >= 2000) {
+        if (address >= 0x4000 && address < 0x6000) {
+            address -= 0x2000; // Mirror RAM
+        }
         state->memory[address] = value;
     }
 }
