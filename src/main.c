@@ -24,10 +24,10 @@ typedef struct {
     Port *port;
 } Arcade_system;
 
-unsigned char *initalise_memory(char *rom_filename) {
-    FILE *f = fopen(rom_filename, "rb");
+void load_rom_file(char *filename, unsigned char *memory) {
+    FILE *f = fopen(filename, "rb");
     if (!f) {
-        printf("Could not open %s\n", rom_filename);
+        printf("Could not open %s\n", filename);
         exit(1);
     }
 
@@ -35,26 +35,46 @@ unsigned char *initalise_memory(char *rom_filename) {
     int fsize = ftell(f);
     fseek(f, 0, SEEK_SET);
 
-    unsigned char *memory = malloc(sizeof(unsigned char) * 0x4000);
-    memset(memory, 0, 0x4000);
-
     int bytes_read;
-#if CPUDIAG //TODO implement without #if
-    bytes_read = fread(&memory[0x100], 1, fsize, f);
-#else
     bytes_read = fread(memory, 1, fsize, f);
-#endif
     fclose(f);
 
     if (bytes_read != fsize) {
-        printf("Failed to fully read file: %s\n", rom_filename);
+        printf("Failed to fully read file: %s\n", filename);
         exit(1);
     }
+}
+
+unsigned char *initalise_memory(char *rom_path) {
+    unsigned char *memory = malloc(sizeof(unsigned char) * 0x4000);
+    memset(memory, 0, 0x4000);
+
+#if CPUDIAG
+    load_rom_file(rom_path, &memory[0x100]);
+#else
+    char filepath[100];
+
+    strcpy(filepath, rom_path);
+    strcat(filepath, "/invaders.h");
+    load_rom_file(filepath, &memory[0x0000]);
+
+    strcpy(filepath, rom_path);
+    strcat(filepath, "/invaders.g");
+    load_rom_file(filepath, &memory[0x0800]);
+
+    strcpy(filepath, rom_path);
+    strcat(filepath, "/invaders.f");
+    load_rom_file(filepath, &memory[0x1000]);
+
+    strcpy(filepath, rom_path);
+    strcat(filepath, "/invaders.e");
+    load_rom_file(filepath, &memory[0x1800]);
+#endif
 
     return memory;
 }
 
-int initalise_state(Cpu_state *state, char *rom_filename) {
+int initalise_state(Cpu_state *state, char *rom_path) {
     state->pc = 0;
     state->sp = 0;
     state->int_enable = 0;
@@ -65,7 +85,7 @@ int initalise_state(Cpu_state *state, char *rom_filename) {
     state->cc.p = 0;
     for (int i = 0; i < 7; i++)
         state->regs[i] = 0;
-    state->memory = initalise_memory(rom_filename);
+    state->memory = initalise_memory(rom_path);
     return 0;
 }
 
@@ -73,7 +93,7 @@ Arcade_system initialise_system() {
     Arcade_system system;
 
     system.state = malloc(sizeof(Cpu_state));
-    initalise_state(system.state, "rom/invaders");
+    initalise_state(system.state, "rom");
 
     system.input = malloc(sizeof(Input));
     system.input->left1 = 0;
