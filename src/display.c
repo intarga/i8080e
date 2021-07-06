@@ -3,31 +3,34 @@
 
 void initialise_SDL(Display *display) {
     int rendererFlags = SDL_RENDERER_ACCELERATED;
-    int windowFlags = 0;
+    int windowFlags = SDL_WINDOW_RESIZABLE;
 
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         printf("Couldn't initialize SDL: %s\n", SDL_GetError());
         exit(1);
     }
 
     display->window = SDL_CreateWindow(
             "Invaders",
-            SDL_WINDOWPOS_UNDEFINED,
-            SDL_WINDOWPOS_UNDEFINED,
-            SCREEN_WIDTH,
-            SCREEN_HEIGHT,
+            SDL_WINDOWPOS_CENTERED,
+            SDL_WINDOWPOS_CENTERED,
+            SCREEN_WIDTH * 2,
+            SCREEN_HEIGHT * 2,
             windowFlags);
 
     if (!display->window) {
         printf(
                 "Failed to open %d x %d window: %s\n",
-                SCREEN_WIDTH,
-                SCREEN_HEIGHT,
+                SCREEN_WIDTH * 2,
+                SCREEN_HEIGHT * 2,
                 SDL_GetError());
         exit(1);
     }
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+    SDL_SetWindowMinimumSize(display->window, SCREEN_WIDTH, SCREEN_HEIGHT);
+    SDL_ShowCursor(SDL_DISABLE);
+
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 
     display->renderer = SDL_CreateRenderer(display->window, -1, rendererFlags);
 
@@ -35,6 +38,8 @@ void initialise_SDL(Display *display) {
         printf("Failed to create renderer: %s\n", SDL_GetError());
         exit(1);
     }
+
+    SDL_RenderSetLogicalSize(display->renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     display->texture = SDL_CreateTexture(
             display->renderer,
