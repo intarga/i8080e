@@ -35,8 +35,8 @@ unsigned char *initalise_memory(char *rom_filename) {
     int fsize = ftell(f);
     fseek(f, 0, SEEK_SET);
 
-    unsigned char *memory = malloc(sizeof(unsigned char) * 16000);
-    memset(memory, 0, 16000);
+    unsigned char *memory = malloc(sizeof(unsigned char) * 0x4000);
+    memset(memory, 0, 0x4000);
 
     int bytes_read;
 #if CPUDIAG //TODO implement without #if
