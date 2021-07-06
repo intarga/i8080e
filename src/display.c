@@ -77,9 +77,15 @@ void prepareScene(Display *display, u_int8_t *memory) {
             uint8_t b = 0;
 
             if ((byte >> bit) & 0x01) { //reverse bitshift??
-                r = 255;
-                g = 255;
-                b = 255;
+                if (x >= 184 && (x < 240 || (y >=16 && y < 134))) {
+                    g = 255;
+                } else if (x >= 32 && x < 64) {
+                    r = 255;
+                } else {
+                    r = 255;
+                    g = 255;
+                    b = 255;
+                }
             }
 
             display->pixels[x][y][0] = r;
