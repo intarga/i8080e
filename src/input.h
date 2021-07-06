@@ -10,6 +10,7 @@ typedef struct {
     int shot2;
     int start2;
     int coin;
+    int quit;
 } Input;
 
 void keyUpHandler(SDL_KeyboardEvent *event, Input *input);

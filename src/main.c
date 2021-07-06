@@ -85,20 +85,13 @@ Arcade_system initialise_system() {
     system.input->shot2 = 0;
     system.input->start2 = 0;
     system.input->coin = 0;
+    system.input->quit = 0;
 
     system.port = malloc(sizeof(Port));
     system.port->offset = 0;
     system.port->shift = 0;
 
-    /*
-    Cpu_state state;
-    initalise_state(&state, "rom/invaders");
-    system.state = &state;
-    */
-
-    //system.display = Display display;
     system.display = malloc(sizeof(Display));
-    //system.display = &(Display) {};
 
     return system;
 }
@@ -166,6 +159,19 @@ int invaders_op(Arcade_system *system) {
     return cyc;
 }
 
+void cleanup(Arcade_system system) {
+    SDL_DestroyTexture(system.display->texture);
+    SDL_DestroyRenderer(system.display->renderer);
+    SDL_DestroyWindow(system.display->window);
+    SDL_Quit();
+
+    free(system.state->memory);
+    free(system.state);
+    free(system.input);
+    free(system.port);
+    free(system.display);
+}
+
 int main() {
 #if CPUDIAG
     Cpu_state state;
@@ -180,17 +186,14 @@ int main() {
         emulate_op(&state);
 #else
     Arcade_system system = initialise_system();
-    //memset(&cabinet, 0, sizeof(Cabinet));
-
 
     initialise_SDL(system.display);
 
     //atexit(cleanup);
 
-    bool done = false;
     int cyc = 0;
     u_int32_t timer = 0;
-    while (!done) {
+    while (!system.input->quit) {
         if ((SDL_GetTicks() - timer) > (1000 / FRAMERATE)) {
             timer = SDL_GetTicks();
 
@@ -213,7 +216,7 @@ int main() {
         }
     }
 
-    //TODO free structs
+    cleanup(system);
 #endif
 
     return 0;

@@ -42,7 +42,7 @@ void handleInput(Input *input) {
 
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
-        case SDL_QUIT: exit(0); break;
+        case SDL_QUIT: input->quit = 1; break;
         case SDL_KEYDOWN: keyHandler(&event.key, input, 1); break;
         case SDL_KEYUP: keyHandler(&event.key, input, 0); break;
         }
