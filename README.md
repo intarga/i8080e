@@ -1,20 +1,24 @@
 # i8080e
 
-A simple emulator for the Intel 8080, along with other parts of the Space Invaders arcade system. Tested with the CPUDIAG routine, and space invaders.
+![demo image](demo.gif "A demonstration, running the Space Invaders ROM")
 
-This is a work in progress. CPU emulation is complete, but I/O remains to be implemented.
+A simple emulator for the Intel 8080, along with other parts of the Space Invaders arcade system. Tested with the CPUDIAG routine, and Space Invaders.
 
 ## Building and running
 
 ### Supported systems
 
-Only tested with x86_64 Linux, but probably anything with a C compiler and SDL backend will probably work fine.
+Tested with:
+
+- x86_64 Linux Ubuntu 21.04 (gcc & glibc)
+
+Anything with a C compiler and SDL backend will probably work fine.
 
 ### Dependencies
 
-- glibc (Other C standard library implementations would probably work too) <version>
+- LibSDL 2
 
-- LibSDL 2 <version>
+To install on Ubuntu: `$ sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev`.
 
 ### Building
 
@@ -24,9 +28,15 @@ Run `$ make release` in the project directory to build, it puts the executable a
 
 I can't distribute the ROM here for obvious copyright reasons, but it's not particularly hard to find.
 
-Once you have it, extract it to `<project_directory>/rom`, and then concatenate the files together like so:
+Once you have it, extract it to `<project_directory>/rom`. The directory should look something like this:
 
-`$ cat invaders.h invaders.g invaders.f invaders.e > invaders`
+```
+i8080e/rom
+├── invaders.e
+├── invaders.f
+├── invaders.g
+└── invaders.h
+```
 
 ### Running
 
@@ -35,3 +45,17 @@ Simply execute the binary from the project directory to run.
 `$ bin/i8080e`
 
 no arguments or flags are needed and it'll pick up and load the ROM from its directory.
+
+## Keybinds
+
+| Key | Action                |
+| --- | --------------------- |
+| c   | Insert coin           |
+| 1   | Start 1-player game   |
+| 2   | Start 2-player game   |
+| ←   | Move left (player 1)  |
+| →   | Move right (player 1) |
+| ↑   | Shoot (player 1)      |
+| a   | Move left (player 2)  |
+| d   | Move right (player 2) |
+| w   | Shoot (player 2)      |
