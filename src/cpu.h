@@ -40,5 +40,7 @@ typedef struct {
 
 // -- Exported functions
 
+uint8_t read_memory(Cpu_state *state, uint16_t address);
+void write_memory(Cpu_state *state, uint16_t address, uint8_t value);
 int emulate_op(Cpu_state *state);
 int interrupt(Cpu_state *state, uint16_t offset);

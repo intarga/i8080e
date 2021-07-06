@@ -104,7 +104,7 @@ Arcade_system initialise_system() {
 }
 
 int invaders_IN(Arcade_system *system) {
-    uint8_t port = system->state->memory[system->state->pc + 1];
+    uint8_t port = read_memory(system->state, system->state->pc + 1);
 
     switch (port) {
     case 1:
@@ -132,7 +132,7 @@ int invaders_IN(Arcade_system *system) {
 }
 
 int invaders_OUT(Arcade_system *system) {
-    uint8_t port = system->state->memory[system->state->pc + 1];
+    uint8_t port = read_memory(system->state, system->state->pc + 1);
 
     switch (port) {
     case 2:
@@ -149,7 +149,7 @@ int invaders_OUT(Arcade_system *system) {
 }
 
 int invaders_op(Arcade_system *system) {
-    unsigned char op_code = system->state->memory[system->state->pc];
+    unsigned char op_code = read_memory(system->state, system->state->pc);
     int cyc = 0;
 
     switch (op_code) {

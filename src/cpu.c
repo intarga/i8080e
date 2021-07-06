@@ -6,6 +6,28 @@
 
 // -- Helper functions --
 
+uint8_t read_memory(Cpu_state *state, uint16_t address) {
+    if (address >= 0x6000) {
+        printf("Tried to read outside memory buffer\n");
+        exit(1);
+    }
+
+    if (address >= 0x4000 && address < 0x6000) {
+        address -= 0x2000; // Mirror RAM
+    }
+
+    return state->memory[address];
+}
+
+void write_memory(Cpu_state *state, uint16_t address, uint8_t value) {
+    if (address >= 0x2000) {
+        if (address >= 0x4000 && address < 0x6000) {
+            address -= 0x2000; // Mirror RAM
+        }
+        state->memory[address] = value;
+    }
+}
+
 uint8_t check_parity(uint8_t res, int bits) {
     int p = 0;
     for (int i = 0; i < bits; i++) {
@@ -26,16 +48,9 @@ uint16_t get_m_address(Cpu_state *state, uint8_t reg1, uint8_t reg2) {
 }
 
 uint16_t get_immediate_address(Cpu_state *state) {
-    return (state->memory[state->pc + 2] << 8) | state->memory[state->pc + 1];
-}
-
-void write_memory(Cpu_state *state, uint16_t address, uint8_t value) {
-    if (address >= 2000) {
-        if (address >= 0x4000 && address < 0x6000) {
-            address -= 0x2000; // Mirror RAM
-        }
-        state->memory[address] = value;
-    }
+    uint8_t byte1 = read_memory(state, state->pc + 2);
+    uint8_t byte2 = read_memory(state, state->pc + 1);
+    return (byte1 << 8) | byte2;
 }
 
 // -- Carry bit instructions --
@@ -60,7 +75,7 @@ int INR(Cpu_state *state, uint8_t reg) {
         cyc = 10;
 
         uint16_t address = get_m_address(state, H, L);
-        res = state->memory[address] + 1;
+        res = read_memory(state, address) + 1;
         write_memory(state, address, res);
     } else {
         res = ++state->regs[reg];
@@ -79,7 +94,7 @@ int DCR(Cpu_state *state, uint8_t reg) {
         cyc = 10;
 
         uint16_t address = get_m_address(state, H, L);
-        res = state->memory[address] - 1;
+        res = read_memory(state, address) - 1;
         write_memory(state, address, res);
     } else {
         res = --state->regs[reg];
@@ -119,7 +134,7 @@ int MOV(Cpu_state *state, uint8_t reg1, uint8_t reg2) {
         cyc = 7;
 
         uint16_t address = get_m_address(state, H, L);
-        byte = state->memory[address];
+        byte = read_memory(state, address);
     } else {
         byte = state->regs[reg2];
     }
@@ -145,7 +160,7 @@ int STAX(Cpu_state *state, uint8_t reg) {
 
 int LDAX(Cpu_state *state, uint8_t reg) {
     uint16_t address = get_m_address(state, reg, reg + 1);
-    state->regs[A] = state->memory[address];
+    state->regs[A] = read_memory(state, address);
 
     return 7;
 }
@@ -161,7 +176,7 @@ int ADD(Cpu_state *state, uint8_t reg) {
         cyc = 7;
 
         uint16_t address = get_m_address(state, H, L);
-        add2 = state->memory[address];
+        add2 = read_memory(state, address);
     } else {
         add2 = state->regs[reg];
     }
@@ -188,7 +203,7 @@ int ADC(Cpu_state *state, uint8_t reg) {
         cyc = 7;
 
         uint16_t address = get_m_address(state, H, L);
-        add2 = state->memory[address];
+        add2 = read_memory(state, address);
     } else {
         add2 = state->regs[reg];
     }
@@ -215,7 +230,7 @@ int SUB(Cpu_state *state, uint8_t reg) {
         cyc = 7;
 
         uint16_t address = get_m_address(state, H, L);
-        sub2 = ~state->memory[address];
+        sub2 = ~read_memory(state, address);
     } else {
         sub2 = ~state->regs[reg];
     }
@@ -242,7 +257,7 @@ int SBB(Cpu_state *state, uint8_t reg) {
         cyc = 7;
 
         uint16_t address = get_m_address(state, H, L);
-        sub2 = ~(state->memory[address] + 1);
+        sub2 = ~(read_memory(state, address) + 1);
     } else {
         sub2 = ~(state->regs[reg] + 1);
     }
@@ -267,7 +282,7 @@ int ANA(Cpu_state *state, uint8_t reg) {
         cyc = 7;
 
         uint16_t address = get_m_address(state, H, L);
-        and = state->memory[address];
+        and = read_memory(state, address);
     } else {
         and = state->regs[reg];
     }
@@ -289,7 +304,7 @@ int XRA(Cpu_state *state, uint8_t reg) {
         cyc = 7;
 
         uint16_t address = get_m_address(state, H, L);
-        xor = state->memory[address];
+        xor = read_memory(state, address);
     } else {
         xor = state->regs[reg];
     }
@@ -309,7 +324,7 @@ int ORA(Cpu_state *state, uint8_t reg) {
     if (reg == M) {
         cyc = 7;
         uint16_t address = get_m_address(state, H, L);
-        or = state->memory[address];
+        or = read_memory(state, address);
     } else {
         or = state->regs[reg];
     }
@@ -332,7 +347,7 @@ int CMP(Cpu_state *state, uint8_t reg) {
         cyc = 7;
 
         uint16_t address = get_m_address(state, H, L);
-        cmp2 = ~state->memory[address];
+        cmp2 = ~read_memory(state, address);
     } else {
         cmp2 = ~state->regs[reg];
     }
@@ -419,8 +434,8 @@ int PUSH(Cpu_state *state, uint8_t reg) {
 }
 
 int POP(Cpu_state *state, uint8_t reg) {
-    uint8_t byte1 = state->memory[state->sp + 1];
-    uint8_t byte2 = state->memory[state->sp];
+    uint8_t byte1 = read_memory(state, state->sp + 1);
+    uint8_t byte2 = read_memory(state, state->sp);
 
     if (reg == PSW) {
         //bytes are reversed from what the data book says, but it seems right
@@ -503,8 +518,8 @@ int XTHL(Cpu_state *state) {
     uint8_t l_data = state->regs[L];
     uint8_t h_data = state->regs[H];
 
-    state->regs[L] = state->memory[state->sp];
-    state->regs[H] = state->memory[state->sp + 1];
+    state->regs[L] = read_memory(state, state->sp);
+    state->regs[H] = read_memory(state, state->sp + 1);
 
     write_memory(state, state->sp, l_data);
     write_memory(state, state->sp + 1, h_data);
@@ -520,8 +535,8 @@ int SPHL(Cpu_state *state) {
 // -- Immediate instructions --
 
 int LXI(Cpu_state *state, uint8_t reg) {
-    unsigned char byte1 = state->memory[state->pc + 1];
-    unsigned char byte2 = state->memory[state->pc + 2];
+    unsigned char byte1 = read_memory(state, state->pc + 1);
+    unsigned char byte2 = read_memory(state, state->pc + 2);
 
     if (reg == SP) {
         state->sp = (byte2 << 8) | byte1;
@@ -537,7 +552,7 @@ int LXI(Cpu_state *state, uint8_t reg) {
 
 int MVI(Cpu_state *state, uint8_t reg) {
     int cyc = 7;
-    unsigned char byte = state->memory[state->pc + 1];
+    unsigned char byte = read_memory(state, state->pc + 1);
 
     if (reg == M) {
         cyc = 10;
@@ -555,7 +570,7 @@ int MVI(Cpu_state *state, uint8_t reg) {
 
 int ADI(Cpu_state *state) {
     uint8_t add1 = state->regs[A];
-    uint8_t add2 = state->memory[state->pc + 1];
+    uint8_t add2 = read_memory(state, state->pc + 1);
 
     state->cc.ac = (((add1 & 0x0f) + (add2 & 0x0f)) & 0xf0) != 0;
 
@@ -574,7 +589,7 @@ int ADI(Cpu_state *state) {
 
 int ACI(Cpu_state *state) {
     uint8_t add1 = state->regs[A];
-    uint8_t add2 = state->memory[state->pc + 1];
+    uint8_t add2 = read_memory(state, state->pc + 1);
 
     state->cc.ac = (((add1 & 0x0f) + (add2 & 0x0f) + 1) & 0xf0) != 0;
 
@@ -593,7 +608,7 @@ int ACI(Cpu_state *state) {
 
 int SUI(Cpu_state *state) {
     uint8_t sub1 = state->regs[A];
-    uint8_t sub2 = ~state->memory[state->pc + 1];
+    uint8_t sub2 = ~read_memory(state, state->pc + 1);
 
     state->cc.ac = (((sub1 & 0x0f) + (sub2 & 0x0f) + 1) & 0xf0) != 0;
 
@@ -612,7 +627,7 @@ int SUI(Cpu_state *state) {
 
 int SBI(Cpu_state *state) {
     uint8_t sub1 = state->regs[A];
-    uint8_t sub2 = ~(state->memory[state->pc + 1] + state->cc.cy);
+    uint8_t sub2 = ~(read_memory(state, state->pc + 1) + state->cc.cy);
 
     state->cc.ac = (((sub1 & 0x0f) + (sub2 & 0x0f) + 1) & 0xf0) != 0;
 
@@ -630,7 +645,7 @@ int SBI(Cpu_state *state) {
 }
 
 int ANI(Cpu_state *state) {
-    uint8_t and = state->memory[state->pc + 1];
+    uint8_t and = read_memory(state, state->pc + 1);
 
     state->cc.ac = ((state->regs[A] | and) & 0x08) != 0;
 
@@ -645,7 +660,7 @@ int ANI(Cpu_state *state) {
 }
 
 int XRI(Cpu_state *state) {
-    state->regs[A] = state->regs[A] ^ state->memory[state->pc + 1];
+    state->regs[A] = state->regs[A] ^ read_memory(state, state->pc + 1);
 
     state->cc.cy = 0;
     set_zsp(state, state->regs[A]);
@@ -656,7 +671,7 @@ int XRI(Cpu_state *state) {
 }
 
 int ORI(Cpu_state *state) {
-    state->regs[A] = state->regs[A] | state->memory[state->pc + 1];
+    state->regs[A] = state->regs[A] | read_memory(state, state->pc + 1);
 
     state->cc.cy = 0;
     state->cc.ac = 0;
@@ -669,7 +684,7 @@ int ORI(Cpu_state *state) {
 
 int CPI(Cpu_state *state) {
     uint8_t cmp1 = state->regs[A];
-    uint8_t cmp2 = ~state->memory[state->pc + 1];
+    uint8_t cmp2 = ~read_memory(state, state->pc + 1);
 
     // might be wrong... data book didn't specify the behaviour
     int16_t sub = cmp1 - ~cmp2;
@@ -699,7 +714,7 @@ int STA(Cpu_state *state) {
 
 int LDA(Cpu_state *state) {
     uint16_t address = get_immediate_address(state);
-    state->regs[A] = state->memory[address];
+    state->regs[A] = read_memory(state, address);
 
     state->pc += 2;
 
@@ -718,8 +733,8 @@ int SHLD(Cpu_state *state) {
 
 int LHLD(Cpu_state *state) {
     uint16_t address = get_immediate_address(state);
-    state->regs[L] = state->memory[address];
-    state->regs[H] = state->memory[address + 1];
+    state->regs[L] = read_memory(state, address);
+    state->regs[H] = read_memory(state, address + 1);
 
     state->pc += 2;
 
@@ -817,7 +832,7 @@ int CALL(Cpu_state *state) {
     if (5 == get_immediate_address(state)) {
         if (state->regs[C] == 9) {
             uint16_t offset = (state->regs[D]<<8) | (state->regs[E]);
-            unsigned char *str = &state->memory[offset+3];
+            unsigned char *str = &read_memory(state, offset+3);
 
             while (*str != '$')
                 printf("%c", *str++);
@@ -915,7 +930,7 @@ int CPO(Cpu_state *state) {
 // -- Return from subroutine instructions --
 
 int RET(Cpu_state *state) {
-    state->pc = state->memory[state->sp] | (state->memory[state->sp+1] << 8);
+    state->pc = read_memory(state, state->sp) | (read_memory(state, state->sp+1) << 8);
     state->pc--;
     state->sp += 2;
     return 10;
@@ -1032,7 +1047,7 @@ int HLT(Cpu_state *state) {
 // -- The emulation nation --
 
 int emulate_op(Cpu_state *state) {
-    unsigned char op_code = state->memory[state->pc];
+    unsigned char op_code = read_memory(state, state->pc);
 
     int cyc = 0;
 
