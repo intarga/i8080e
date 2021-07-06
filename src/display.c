@@ -62,6 +62,16 @@ void prepareScene(Display *display, u_int8_t *memory) {
             int x = 255 - ((i * 8) % 256 + bit); //implicit rotation between
             int y = i * 8 / 256; //buffer and texture
 
+            if (
+                    x >= SCREEN_HEIGHT ||
+                    y >= SCREEN_WIDTH ||
+                    x < 0 ||
+                    y < 0
+                    ) {
+                printf("Tried to draw outside pixel buffer");
+                exit(1);
+            }
+
             uint8_t r = 0;
             uint8_t g = 0;
             uint8_t b = 0;
