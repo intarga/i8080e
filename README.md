@@ -19,7 +19,7 @@ Anything with a C compiler and SDL backend will probably work fine.
 
 - LibSDL 2
 
-To install on Ubuntu: `$ sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev`.
+To install on Ubuntu: `$ sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev`.
 
 ### Building
 
