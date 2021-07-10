@@ -11,6 +11,7 @@ A simple emulator for the Intel 8080, along with other parts of the Space Invade
 Tested with:
 
 - x86_64 Linux Ubuntu 21.04 (gcc & glibc)
+- armhf Raspberry Pi OS Buster (gcc & glibc)
 
 Anything with a C compiler and SDL backend will probably work fine.
 
