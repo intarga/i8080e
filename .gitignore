@@ -1,12 +1,5 @@
-# object files
-obj/*
-
 # copyrighted stuff
-rom/*
 docs/*
-
-# binaries
-bin/*
 
 # random junk
 .ccls-cache/*
