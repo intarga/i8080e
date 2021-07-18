@@ -7,16 +7,18 @@
 
 // -- Register names --
 
-#define A 0 // accumulator
-#define B 1
-#define C 2
-#define D 3
-#define E 4
-#define H 5
-#define L 6
-#define SP 7 // stack pointer
-#define M 8 // memory reference
-#define PSW 9
+enum Register {
+    A, // accumulator
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
+    SP, // stack pointer
+    M, // memory reference
+    PSW,
+};
 
 // -- System state --
 
