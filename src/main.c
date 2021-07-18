@@ -24,7 +24,7 @@ typedef struct {
     Port *port;
 } Arcade_system;
 
-void load_rom_file(char *filename, unsigned char *memory) {
+void load_rom_file(char *filename, uint8_t *memory) {
     FILE *f = fopen(filename, "rb");
     if (!f) {
         printf("Could not open %s\n", filename);
@@ -45,8 +45,8 @@ void load_rom_file(char *filename, unsigned char *memory) {
     }
 }
 
-unsigned char *initalise_memory(char *rom_path) {
-    unsigned char *memory = malloc(sizeof(unsigned char) * 0x4000);
+uint8_t *initalise_memory(char *rom_path) {
+    uint8_t *memory = malloc(sizeof(uint8_t) * 0x4000);
     memset(memory, 0, 0x4000);
 
 #if CPUDIAG
@@ -162,7 +162,7 @@ int invaders_OUT(Arcade_system *system) {
 }
 
 int invaders_op(Arcade_system *system) {
-    unsigned char op_code = read_memory(system->state, system->state->pc);
+    uint8_t op_code = read_memory(system->state, system->state->pc);
     int cyc = 0;
 
     switch (op_code) {

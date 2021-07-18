@@ -128,7 +128,7 @@ int DAA(Cpu_state *state) {
 
 int MOV(Cpu_state *state, uint8_t reg1, uint8_t reg2) {
     int cyc = 5;
-    unsigned char byte;
+    uint8_t byte;
 
     if (reg2 == M) {
         cyc = 7;
@@ -535,8 +535,8 @@ int SPHL(Cpu_state *state) {
 // -- Immediate instructions --
 
 int LXI(Cpu_state *state, uint8_t reg) {
-    unsigned char byte1 = read_memory(state, state->pc + 1);
-    unsigned char byte2 = read_memory(state, state->pc + 2);
+    uint8_t byte1 = read_memory(state, state->pc + 1);
+    uint8_t byte2 = read_memory(state, state->pc + 2);
 
     if (reg == SP) {
         state->sp = (byte2 << 8) | byte1;
@@ -552,7 +552,7 @@ int LXI(Cpu_state *state, uint8_t reg) {
 
 int MVI(Cpu_state *state, uint8_t reg) {
     int cyc = 7;
-    unsigned char byte = read_memory(state, state->pc + 1);
+    uint8_t byte = read_memory(state, state->pc + 1);
 
     if (reg == M) {
         cyc = 10;
@@ -832,7 +832,7 @@ int CALL(Cpu_state *state) {
     if (5 == get_immediate_address(state)) {
         if (state->regs[C] == 9) {
             uint16_t offset = (state->regs[D]<<8) | (state->regs[E]);
-            unsigned char *str = &read_memory(state, offset+3);
+            uint8_t *str = &read_memory(state, offset+3);
 
             while (*str != '$')
                 printf("%c", *str++);
@@ -1047,7 +1047,7 @@ int HLT(Cpu_state *state) {
 // -- The emulation nation --
 
 int emulate_op(Cpu_state *state) {
-    unsigned char op_code = read_memory(state, state->pc);
+    uint8_t op_code = read_memory(state, state->pc);
 
     int cyc = 0;
 

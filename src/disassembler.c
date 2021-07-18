@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "disassembler.h"
 
-int disassemble_op(unsigned char *memory, int pc) {
-    unsigned char* op_code = &memory[pc];
+int disassemble_op(uint8_t *memory, int pc) {
+    uint8_t *op_code = &memory[pc];
     int op_bytes = 1;
 
     printf("%04x ", pc);
@@ -286,7 +287,7 @@ int disassemble_op(unsigned char *memory, int pc) {
     return op_bytes;
 }
 
-unsigned char *read_rom(char *filename, int *fsize) {
+uint8_t *read_rom(char *filename, int *fsize) {
     FILE *f = fopen(filename, "rb");
     if (!f) {
         printf("Could not open %s\n", filename);
@@ -297,7 +298,7 @@ unsigned char *read_rom(char *filename, int *fsize) {
     *fsize = ftell(f);
     fseek(f, 0, SEEK_SET);
 
-    unsigned char *buffer = malloc(*fsize);
+    uint8_t *buffer = malloc(*fsize);
 
     int bytes_read = fread(buffer, 1, *fsize, f);
     fclose(f);
@@ -313,7 +314,7 @@ unsigned char *read_rom(char *filename, int *fsize) {
 /*
 int main() {
     int fsize = 0;
-    unsigned char *buffer = read_rom("rom/invaders", &fsize);
+    uint8_t *buffer = read_rom("rom/invaders", &fsize);
 
     int pc = 0;
     while (pc < fsize) {
