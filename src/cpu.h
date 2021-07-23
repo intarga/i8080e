@@ -1,4 +1,5 @@
 #include<stdint.h>
+#include<stdbool.h>
 
 #define CPUDIAG 0
 
@@ -23,12 +24,12 @@ enum Register {
 // -- System state --
 
 typedef struct {
-    uint8_t z;
-    uint8_t s;
-    uint8_t p;
-    uint8_t cy;
-    uint8_t ac;
-    //uint8_t pad;
+    bool z;
+    bool s;
+    bool p;
+    bool cy;
+    bool ac;
+    //bool pad;
 } Condition_codes;
 
 typedef struct {
